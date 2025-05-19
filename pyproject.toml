@@ -1,0 +1,9 @@
+[project]
+name = "simple-revit-mcp"
+version = "0.1.0"
+description = "Simple MCP implementation for Revit"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp[cli]>=1.9.0",
+]
