@@ -4,25 +4,25 @@
 
 ---
 
-**Why?**
+## **Why?**
 
 After being frustrated with the multiple MCP for Revit implementations floating around the internet, I decided to try my hand at providing a simple, pyRevit-oriented MCP implementation. The goal is to make it as approachable as possible, even for those new to the Revit API.
 
-**How?**
+## **How?**
 
 - This minimal implementation leverages the Routes module inside pyRevit to create a bridge between Revit and Large Language Models (LLMs).
 - It provides a straightforward template to get started quickly, letting you prototype and iterate tools to give LLMs access to your Revit models.
 - These tools are designed to be expanded for your specific use cases. You're very welcome to fork the repo and make your own contributions.
 - **Note:** The pyRevit Routes API is currently in draft form and subject to change. It lacks built-in authentication mechanisms, so you'll need to implement your own security measures for production use.
 
-**Batteries Included**
+## **Batteries Included**
 
 This repo is aimed at:
 - Beginners to the Revit API
 - Python specialists who aren't versed in C#
 - Anyone wanting to prototype and iterate quickly with LLMs and Revit
 
-It includes:
+It contains:
 - A complete Routes implementation for pyRevit
 - A minimal MCP server script to connect to any MCP-compatible client
 - Several test commands to get you started right away
@@ -46,6 +46,11 @@ The current implementation provides these key capabilities:
    - Apply custom properties to the placed elements
 
 ---
+
+![Claude listing model elements in the Desktop interface](images/list_model_tool.png)
+
+![Claude getting a view in the Desktop interface](images/get_view_tool.png)
+
 
 ## Getting Started
 
