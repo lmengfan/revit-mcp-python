@@ -161,7 +161,7 @@ Or for manual installation:
 
 What makes this implementation special is how easy it is to create new endpoints:
 
-1. **Define a Routes API endpoint in `startup.py`:**
+Define a Routes API endpoint in `startup.py`:
 
 ```python
 @api.route('/function/', methods=["GET"])
@@ -175,7 +175,7 @@ def some_function():
     return routes.make_response(data=value)
 ```
 
-2. **Create a corresponding MCP tool in `main.py`:**
+Create a corresponding MCP tool in `main.py`:
 
 ```python
 @mcp.tool()
@@ -201,30 +201,90 @@ For operations that modify the model, use POST requests with JSON payloads:
 
 ```python
 # In startup.py
-@api.route('/place_object/', methods=["POST"])
-def place_object(request):
-    # Get current document
-    doc = revit.doc
-    
-    # Parse request data
-    data = json.loads(request.data)
-    
-    # Start a transaction
-    t = DB.Transaction(doc, "Place Object")
-    t.Start()
-    
+@api.route('/modify_model/', methods=["POST"])
+def modify_model(doc, request):
+    """Handle POST requests - for modifying the Revit model"""
     try:
-        # Revit API logic to place an object
-        # ...
+        # Parse request data
+        data = json.loads(request.data) if isinstance(request.data, str) else request.data
         
-        t.Commit()
-        return routes.make_response(data={"status": "success"})
+        # Extract parameters from the request
+        operation_type = data.get("operation")
+        parameters = data.get("parameters", {})
+        
+        # Use transaction context manager for automatic commit/rollback
+        with DB.Transaction(doc, "Modify Model via MCP") as t:
+            t.Start()
+            
+            # Your Revit API logic to modify the model
+            result = perform_modification(doc, operation_type, parameters)
+            
+            # Transaction will automatically commit when exiting the 'with' block
+            # or rollback if an exception occurs
+            
+        return routes.make_response(data={
+            "status": "success",
+            "result": result
+        })
+            
     except Exception as e:
-        t.RollBack()
         return routes.make_response(
             data={"error": str(e)},
             status=500
         )
+```
+
+
+```python
+# and in main.py: 
+
+# In main.py
+@mcp.tool()
+async def modify_model(
+    operation: str,
+    parameters: Dict[str, Any],
+    ctx: Context = None
+) -> str:
+    """
+    Modify the Revit model based on specified operation and parameters
+    
+    Args:
+        operation: The type of modification to perform
+        parameters: Dictionary containing operation-specific parameters
+        ctx: MCP context for logging
+    
+    Returns:
+        Success message with operation details or error information
+    """
+    try:
+        data = {
+            "operation": operation,
+            "parameters": parameters
+        }
+        
+        url = f"{BASE_URL}/modify_model/"
+        ctx.info(f"Performing operation: {operation}")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url,
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                ctx.info("Operation completed successfully")
+                return result
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+                
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
 ```
 
 ## Roadmap

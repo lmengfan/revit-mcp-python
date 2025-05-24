@@ -206,7 +206,8 @@ def place_family(doc, request):
     
     Expected request data:
     {
-        "family_type": "Furniture:Chair",
+        "family_type": "Furniture",
+        "type_name": "Chair
         "location": {"x": 0.0, "y": 0.0, "z": 0.0},
         "rotation": 0.0,
         "properties": {
@@ -246,6 +247,7 @@ def place_family(doc, request):
         
         # Extract required fields
         family_type = data.get("family_type")
+        type_name = data.get("type_name")
         location = data.get("location", {})
         rotation = data.get("rotation", 0.0)
         properties = data.get("properties", {})
@@ -266,12 +268,8 @@ def place_family(doc, request):
             
         # Parse family and type names
         family_name = family_type
-        type_name = None
+        type_name = type_name
         
-        if ":" in family_type:
-            parts = family_type.split(":", 1)
-            family_name = parts[0]
-            type_name = parts[1]
         
         # Find the appropriate family symbol (type)
         symbols = FilteredElementCollector(doc)\
@@ -347,19 +345,14 @@ def place_family(doc, request):
                         param.Set(float(param_value))
             
             t.Commit()
-            
-            # Safely get family name:
-            # Check if target_symbol.Family exists before accessing its .Name property
-            family_display_name = None
-            if target_symbol.Family:
-                family_display_name = normalize_string(target_symbol.Family.Name)
+
             
             # Return information about the placed instance
             return routes.make_response(data={
                 "status": "success",
                 "element_id": new_instance.Id.IntegerValue,
-                "family": family_display_name, # Use the safely retrieved family name
-                "type": normalize_string(target_symbol.Name),
+                "family": family_type,
+                "type": type_name,
                 "location": {
                     "x": point.X,
                     "y": point.Y,
@@ -381,3 +374,4 @@ def place_family(doc, request):
             data={"error": str(e), "traceback": error_trace},
             status=500
         )
+    

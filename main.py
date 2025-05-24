@@ -88,6 +88,7 @@ async def get_view(view_name: str, ctx: Context) -> Image:
 @mcp.tool()
 async def place_family(
     family_type: str,
+    type_name: str, 
     location: Dict[str, float],
     rotation: float = 0.0,
     properties: Dict[str, Any] = None,
@@ -97,7 +98,8 @@ async def place_family(
     Place a family instance at a specified location in the Revit model
     
     Args:
-        family_type: The family and type name to place (e.g., "Furniture:Chair")
+        family_type: The family to place (e.g., "Furniture")
+        type_name: The type to place (e.g., "Chair")
         location: Dictionary with x, y, z coordinates in Revit's internal units
         rotation: The rotation angle in degrees (default: 0.0)
         properties: Dictionary of properties to set on the created element
