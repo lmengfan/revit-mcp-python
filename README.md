@@ -1,12 +1,8 @@
-# Simple Revit MCP Implementation
+# Revit MCP Python
 
-## A minimal and beginner-friendly implementation of the Model Context Protocol (MCP) for Autodesk Revit
+## A pyRevit-oriented implementation of the Model Context Protocol (MCP) for Autodesk Revit
 
 ---
-
-## **Why?**
-
-After being frustrated with the multiple MCP for Revit implementations floating around the internet, I decided to try my hand at providing a simple, pyRevit-oriented MCP implementation. The goal is to make it as approachable as possible, even for those new to the Revit API.
 
 ## **How?**
 
@@ -109,7 +105,7 @@ Once installed, test that the Routes API is working:
 
 2. If successful, you should see a response like:
    ```json
-   {"api_name": "revit_connector", "status": "active"}
+   {"api_name": "revit_mcp", "status": "active"}
    ```
 
 The Routes Service will now load automatically whenever you start Revit. To disable it, simply remove the extension path from the pyRevit settings.
