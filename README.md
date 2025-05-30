@@ -157,18 +157,40 @@ Or for manual installation:
 
 What makes this implementation special is how easy it is to create new endpoints:
 
-Define a Routes API endpoint in `startup.py`:
+Define a Routes API endpoint in a module within revit_mcp (e.g., revit_mcp/my_new_feature.py).
 
 ```python
-@api.route('/function/', methods=["GET"])
-def some_function():
-    # Access the current Revit document
-    doc = revit.doc
-    
-    # Your Revit API logic here
-    value = some_action(doc)
-    
-    return routes.make_response(data=value)
+def register_function_routes(api):
+    @api.route('/some_function/', methods=["GET"])
+    def some_function():
+        # Access the current Revit document
+        doc = revit.doc
+        
+        # Your Revit API logic here
+        value = some_action(doc)
+        
+        return routes.make_response(data=value)
+```
+
+Register your new module's routes in startup.py.
+
+```python
+# ... (existing imports)
+from revit_mcp.my_new_feature import register_function_routes # Your new module
+
+api = routes.API('revit_mcp')
+
+def register_routes():
+    try:
+        # ... (existing route registrations)
+        register_function_routes(api) # Register your new routes
+
+        logger.info("All MCP routes registered successfully")
+    except Exception as e:
+        logger.error(f"Failed to register MCP routes:{str(e)}")
+        raise
+
+register_routes()
 ```
 
 Create a corresponding MCP tool in `main.py`:
@@ -193,41 +215,41 @@ async def execute_function() -> str:
 
 ### Creating Actions in the Model
 
-For operations that modify the model, use POST requests with JSON payloads:
+For operations that modify the model use POST requests with JSON payloads:
 
 ```python
-# In startup.py
-@api.route('/modify_model/', methods=["POST"])
-def modify_model(doc, request):
-    """Handle POST requests - for modifying the Revit model"""
-    try:
-        # Parse request data
-        data = json.loads(request.data) if isinstance(request.data, str) else request.data
-        
-        # Extract parameters from the request
-        operation_type = data.get("operation")
-        parameters = data.get("parameters", {})
-        
-        # Use transaction context manager for automatic commit/rollback
-        with DB.Transaction(doc, "Modify Model via MCP") as t:
-            t.Start()
+def register_function_routes(api):
+    @api.route('/modify_model/', methods=["POST"])
+    def modify_model(doc, request):
+        """Handle POST requests - for modifying the Revit model"""
+        try:
+            # Parse request data
+            data = json.loads(request.data) if isinstance(request.data, str) else request.data
             
-            # Your Revit API logic to modify the model
-            result = perform_modification(doc, operation_type, parameters)
+            # Extract parameters from the request
+            operation_type = data.get("operation")
+            parameters = data.get("parameters", {})
             
-            # Transaction will automatically commit when exiting the 'with' block
-            # or rollback if an exception occurs
-            
-        return routes.make_response(data={
-            "status": "success",
-            "result": result
-        })
-            
-    except Exception as e:
-        return routes.make_response(
-            data={"error": str(e)},
-            status=500
-        )
+            # Use transaction context manager for automatic commit/rollback
+            with DB.Transaction(doc, "Modify Model via MCP") as t:
+                t.Start()
+                
+                # Your Revit API logic to modify the model
+                result = perform_modification(doc, operation_type, parameters)
+                
+                # Transaction will automatically commit when exiting the 'with' block
+                # or rollback if an exception occurs
+                
+            return routes.make_response(data={
+                "status": "success",
+                "result": result
+            })
+                
+        except Exception as e:
+            return routes.make_response(
+                data={"error": str(e)},
+                status=500
+            )
 ```
 
 
