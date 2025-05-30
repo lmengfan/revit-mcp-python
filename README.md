@@ -25,7 +25,7 @@ It contains:
 
 ## Available Tools
 
-The current implementation provides these key capabilities:
+The current implementation provides these key capabilities among others:
 
 1. **Model Information** - Get comprehensive information about the Revit model:
    - Element counts by category (walls, doors, windows, etc.)
@@ -105,7 +105,11 @@ Once installed, test that the Routes API is working:
 
 2. If successful, you should see a response like:
    ```json
-   {"api_name": "revit_mcp", "status": "active"}
+   {"status": "active",
+    "health": "healthy",
+    "revit_available": True,
+    "document_title": "your_revit_filename",
+    "api_name": "revit_mcp"}
    ```
 
 The Routes Service will now load automatically whenever you start Revit. To disable it, simply remove the extension path from the pyRevit settings.
