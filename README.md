@@ -100,7 +100,7 @@ Once installed, test that the Routes API is working:
 
 1. Open your web browser and go to:
    ```
-   http://localhost:48884/revit_connector/status/
+   http://localhost:48884/revit_mcp/status/
    ```
 
 2. If successful, you should see a response like:
