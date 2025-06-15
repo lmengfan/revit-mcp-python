@@ -63,8 +63,8 @@ It contains:
 | `place_family` | ✅ Implemented | Family & Placement | Place a family instance at specified location with custom properties |
 | `list_families` | ✅ Implemented | Family & Placement | Get a flat list of available family types (with filtering) |
 | `list_family_categories` | ✅ Implemented | Family & Placement | Get a list of all family categories in the model |
-| `get_current_view_info` | 🔄 Pending | View Information | Get detailed information about the currently active view |
-| `get_current_view_elements` | 🔄 Pending | View Information | Get all elements visible in the current view |
+| `get_current_view_info` | ✅ Implemented | View Information | Get detailed information about the currently active view |
+| `get_current_view_elements` | ✅ Implemented | View Information | Get all elements visible in the current view |
 | `get_selected_elements` | 🔄 Pending | Selection Management | Get information about currently selected elements |
 | `create_point_based_element` | ✅ Implemented* | Element Creation | Create point-based elements (doors, windows, furniture) |
 | `create_line_based_element` | 🔄 Pending | Element Creation | Create line-based elements (walls, beams, pipes) |
