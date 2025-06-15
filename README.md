@@ -195,7 +195,11 @@ Or for manual installation:
 
 # Creating Your Own Tools
 
-The modular architecture makes it easy to add new functionality. The process involves three main parts:
+The modular architectire of this project has been crafted specifically to make adding functionalities as easy as posisble.
+
+Plus, the provided LLM.txt file should provide your language model with all it needs to get started right away.
+
+The process involves three main parts:
 
 ## Part 1: Create the Route Module in Revit
 
