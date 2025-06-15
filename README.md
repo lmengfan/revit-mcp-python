@@ -2,8 +2,6 @@
 
 ## A pyRevit-oriented implementation of the Model Context Protocol (MCP) for Autodesk Revit
 
----
-
 ## **How?**
 
 - This minimal implementation leverages the Routes module inside pyRevit to create a bridge between Revit and Large Language Models (LLMs).
@@ -195,9 +193,7 @@ Or for manual installation:
 
 # Creating Your Own Tools
 
-The modular architectire of this project has been crafted specifically to make adding functionalities as easy as posisble.
-
-Plus, the provided LLM.txt file should provide your language model with all it needs to get started right away.
+The modular architecture of this project makes adding functionalities relatively simple. The provided LLM.txt file also gives your language model the necessary context to get started right away.
 
 The process involves three main parts:
 
