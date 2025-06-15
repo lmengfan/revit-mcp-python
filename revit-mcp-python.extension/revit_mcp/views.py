@@ -273,4 +273,222 @@ def register_views_routes(api):
                 status=500
             )
     
+    @api.route('/current_view_info/', methods=["GET"])
+    def get_current_view_info(uidoc):
+        """
+        Get detailed information about the currently active view.
+        
+        Args:
+            uidoc: UIDocument (provided by MCP context)
+            
+        Returns:
+            dict: Detailed information about the current view
+        """
+        try:
+            if not uidoc or not uidoc.Document:
+                return routes.make_response(
+                    data={"error": "No active Revit document"}, 
+                    status=503
+                )
+            
+            current_view = uidoc.ActiveView
+            if not current_view:
+                return routes.make_response(
+                    data={"error": "No active view found"}, 
+                    status=404
+                )
+            
+            logger.info("Getting current view info")
+            
+            # Get basic view information
+            view_info = {
+                "view_name": get_element_name_safe(current_view),
+                "view_type": str(current_view.ViewType),
+                "view_id": current_view.Id.IntegerValue,
+                "is_template": current_view.IsTemplate if hasattr(current_view, "IsTemplate") else False
+            }
+            
+            # Add scale information if available
+            try:
+                view_info["scale"] = current_view.Scale
+            except Exception:
+                view_info["scale"] = None
+            
+            # Add crop box information if available
+            try:
+                view_info["crop_box_active"] = current_view.CropBoxActive
+            except Exception:
+                view_info["crop_box_active"] = False
+            
+            # Add view family type if available
+            try:
+                view_family_type = current_view.Document.GetElement(current_view.GetTypeId())
+                if view_family_type:
+                    view_info["view_family_type"] = get_element_name_safe(view_family_type)
+                else:
+                    view_info["view_family_type"] = "Unknown"
+            except Exception:
+                view_info["view_family_type"] = "Unknown"
+            
+            # Add detail level if available
+            try:
+                view_info["detail_level"] = str(current_view.DetailLevel)
+            except Exception:
+                view_info["detail_level"] = "Unknown"
+            
+            # Add view discipline if available  
+            try:
+                view_info["discipline"] = str(current_view.Discipline)
+            except Exception:
+                view_info["discipline"] = "Unknown"
+                
+            return routes.make_response(data={
+                "status": "success", 
+                "view_info": view_info
+            })
+            
+        except Exception as e:
+            logger.error("Get current view info failed: {}".format(str(e)))
+            return routes.make_response(
+                data={"error": "Failed to get current view info: {}".format(str(e))}, 
+                status=500
+            )
+
+    @api.route('/current_view_elements/', methods=["GET"])
+    def get_current_view_elements(doc, uidoc):
+        """
+        Get all elements visible in the current view.
+        
+        Args:
+            doc: Revit document (provided by MCP context)
+            uidoc: UIDocument (provided by MCP context)
+            
+        Returns:
+            dict: List of elements with detailed information
+        """
+        try:
+            if not doc or not uidoc:
+                return routes.make_response(
+                    data={"error": "No active Revit document"}, 
+                    status=503
+                )
+            
+            current_view = uidoc.ActiveView
+            if not current_view:
+                return routes.make_response(
+                    data={"error": "No active view found"}, 
+                    status=404
+                )
+            
+            logger.info("Getting elements in current view")
+            
+            # Get all elements in the current view
+            collector = DB.FilteredElementCollector(doc, current_view.Id)
+            elements = collector.WhereElementIsNotElementType().ToElements()
+            
+            # Process elements to get basic information
+            elements_info = []
+            for elem in elements:
+                try:
+                    element_info = {
+                        "element_id": elem.Id.IntegerValue,
+                        "name": get_element_name_safe(elem),
+                        "element_type": elem.GetType().Name
+                    }
+                    
+                    # Add category information
+                    if elem.Category:
+                        element_info["category"] = elem.Category.Name
+                        element_info["category_id"] = elem.Category.Id.IntegerValue
+                    else:
+                        element_info["category"] = "Unknown"
+                        element_info["category_id"] = None
+                    
+                    # Add level information if available
+                    try:
+                        level_param = elem.get_Parameter(DB.BuiltInParameter.FAMILY_LEVEL_PARAM)
+                        if level_param:
+                            level_id = level_param.AsElementId()
+                            if level_id != DB.ElementId.InvalidElementId:
+                                level_elem = doc.GetElement(level_id)
+                                element_info["level"] = get_element_name_safe(level_elem)
+                                element_info["level_id"] = level_id.IntegerValue
+                            else:
+                                element_info["level"] = None
+                                element_info["level_id"] = None
+                        else:
+                            element_info["level"] = None
+                            element_info["level_id"] = None
+                    except Exception:
+                        element_info["level"] = None
+                        element_info["level_id"] = None
+                    
+                    # Add location information if available
+                    try:
+                        location = elem.Location
+                        if hasattr(location, 'Point'):
+                            pt = location.Point
+                            element_info["location"] = {
+                                "type": "point",
+                                "x": pt.X,
+                                "y": pt.Y, 
+                                "z": pt.Z
+                            }
+                        elif hasattr(location, 'Curve'):
+                            curve = location.Curve
+                            start = curve.GetEndPoint(0)
+                            end = curve.GetEndPoint(1)
+                            element_info["location"] = {
+                                "type": "curve",
+                                "start": {"x": start.X, "y": start.Y, "z": start.Z},
+                                "end": {"x": end.X, "y": end.Y, "z": end.Z}
+                            }
+                        else:
+                            element_info["location"] = {"type": "unknown"}
+                    except Exception:
+                        element_info["location"] = {"type": "unknown"}
+                    
+                    elements_info.append(element_info)
+                    
+                except Exception as elem_error:
+                    # Skip elements that cause errors but log the issue
+                    logger.warning("Could not process element {}: {}".format(
+                        elem.Id.IntegerValue if elem else "Unknown", 
+                        str(elem_error)
+                    ))
+                    continue
+            
+            # Group elements by category for easier analysis
+            elements_by_category = {}
+            for elem_info in elements_info:
+                category = elem_info["category"]
+                if category not in elements_by_category:
+                    elements_by_category[category] = []
+                elements_by_category[category].append(elem_info)
+            
+            # Create summary statistics
+            category_counts = {
+                category: len(elements) 
+                for category, elements in elements_by_category.items()
+            }
+            
+            result = {
+                "status": "success",
+                "view_name": get_element_name_safe(current_view),
+                "view_id": current_view.Id.IntegerValue,
+                "total_elements": len(elements_info),
+                "elements": elements_info,
+                "elements_by_category": elements_by_category,
+                "category_counts": category_counts
+            }
+            
+            return routes.make_response(data=result)
+            
+        except Exception as e:
+            logger.error("Get current view elements failed: {}".format(str(e)))
+            return routes.make_response(
+                data={"error": "Failed to get current view elements: {}".format(str(e))}, 
+                status=500
+            )
+    
     logger.info("Views routes registered successfully")

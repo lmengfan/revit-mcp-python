@@ -11,6 +11,6 @@ def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func
     
     # Register tools from each module
     register_status_tools(mcp_server, revit_get_func)
-    register_view_tools(mcp_server, revit_get_func, revit_image_func)
+    register_view_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func)
     register_family_tools(mcp_server, revit_get_func, revit_post_func)
     register_model_tools(mcp_server, revit_get_func)
