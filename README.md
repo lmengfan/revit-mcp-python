@@ -41,6 +41,13 @@ The current implementation provides these key capabilities among others:
    - Set rotation and orientation
    - Apply custom properties to the placed elements
 
+4. **Color Splash** - Visualize data through color coding:
+   - Color elements by parameter values with distinct hues
+   - Use gradient coloring for numerical data
+   - Custom color schemes with hex values
+   - Clear color overrides to restore default appearance
+   - List available parameters for any category
+
 ---
 
 ![Claude listing model elements in the Desktop interface](images/list_model_tool.png)
