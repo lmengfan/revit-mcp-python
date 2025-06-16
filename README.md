@@ -2,8 +2,6 @@
 
 ## A pyRevit-oriented implementation of the Model Context Protocol (MCP) for Autodesk Revit
 
----
-
 ## **How?**
 
 - This minimal implementation leverages the Routes module inside pyRevit to create a bridge between Revit and Large Language Models (LLMs).
@@ -23,23 +21,28 @@ It contains:
 - A minimal MCP server script to connect to any MCP-compatible client
 - Several test commands to get you started right away
 
-## Available Tools
+## Key Architecture Components
 
-The current implementation provides these key capabilities among others:
 
-1. **Model Information** - Get comprehensive information about the Revit model:
-   - Element counts by category (walls, doors, windows, etc.)
-   - Room names and locations
-   - Level information
+1.  **MCP Server (`main.py`)**:
 
-2. **Get View** - Capture any Revit view for the LLM:
-   - Export views as PNG images
-   - Allow the model to view the image directly
+- Built with FastMCP
+- Handles HTTP communication with Revit Routes API
+- Registers tools from modular tool system
+- Provides helper functions for GET/POST/Image requests
 
-3. **Family Placement** - Add elements to the Revit model:
-   - Place family instances at specific coordinates
-   - Set rotation and orientation
-   - Apply custom properties to the placed elements
+2.  **pyRevit Extension (`revit-mcp-python.extension/`)**:
+
+- Contains the Routes API that runs inside Revit
+- Modular route registration in `startup.py`
+- Individual route modules in `revit_mcp/` directory
+
+3.  **Tool Registration System (`tools/`)**:
+
+- Modular tool organization by functionality
+- Central registration through `tools/__init__.py`
+- Each module registers its own tools with the MCP server
+
 
 4. **Color Splash** - Visualize data through color coding:
    - Color elements by parameter values with distinct hues
@@ -49,6 +52,37 @@ The current implementation provides these key capabilities among others:
    - List available parameters for any category
 
 ---
+
+## **Supported Tools**
+
+
+### **Current Implementation Status**
+
+| Tool Name | Status | Category | Description |
+|-----------|--------|----------|-------------|
+| `get_revit_status` | ✅ Implemented | Status & Connectivity | Check if the Revit MCP API is active and responding |
+| `get_revit_model_info` | ✅ Implemented | Model Information | Get comprehensive information about the current Revit model |
+| `list_levels` | ✅ Implemented | Model Information | Get all levels with elevation information |
+| `get_revit_view` | ✅ Implemented | View & Image | Export a specific Revit view as an image |
+| `list_revit_views` | ✅ Implemented | View & Image | Get a list of all exportable views organized by type |
+| `place_family` | ✅ Implemented | Family & Placement | Place a family instance at specified location with custom properties |
+| `list_families` | ✅ Implemented | Family & Placement | Get a flat list of available family types (with filtering) |
+| `list_family_categories` | ✅ Implemented | Family & Placement | Get a list of all family categories in the model |
+| `get_current_view_info` | ✅ Implemented | View Information | Get detailed information about the currently active view |
+| `get_current_view_elements` | ✅ Implemented | View Information | Get all elements visible in the current view |
+| `get_selected_elements` | 🔄 Pending | Selection Management | Get information about currently selected elements |
+| `create_point_based_element` | ✅ Implemented* | Element Creation | Create point-based elements (doors, windows, furniture) |
+| `create_line_based_element` | 🔄 Pending | Element Creation | Create line-based elements (walls, beams, pipes) |
+| `create_surface_based_element` | 🔄 Pending | Element Creation | Create surface-based elements (floors, ceilings) |
+| `delete_elements` | 🔄 Pending | Element Management | Delete specified elements from the model |
+| `modify_element` | 🔄 Pending | Element Management | Modify element properties (instance parameters) |
+| `reset_model` | 🔄 Pending | Element Management | Reset model by deleting process model elements |
+| `color_splash` | 🔄 Pending | Visualization | Color elements based on parameter values |
+| `tag_walls` | 🔄 Pending | Annotation | Tag all walls in the current view |
+| `search_modules` | 🔄 Pending | Integration | Search for available modules/addins |
+| `use_module` | 🔄 Pending | Integration | Execute functionality from external modules |
+| `send_code_to_revit` | 🔄 Pending | Integration | Send code to Revit for execution |
+
 
 ![Claude listing model elements in the Desktop interface](images/list_model_tool.png)
 
@@ -114,7 +148,7 @@ Once installed, test that the Routes API is working:
    ```json
    {"status": "active",
     "health": "healthy",
-    "revit_available": True,
+    "revit_available": true,
     "document_title": "your_revit_filename",
     "api_name": "revit_mcp"}
    ```
@@ -164,167 +198,185 @@ Or for manual installation:
 }
 ```
 
-## Writing Your Own Functions
+# Creating Your Own Tools
 
-What makes this implementation special is how easy it is to create new endpoints:
+The modular architecture of this project makes adding functionalities relatively simple. The provided LLM.txt file also gives your language model the necessary context to get started right away.
 
-Define a Routes API endpoint in a module within revit_mcp (e.g., revit_mcp/my_new_feature.py).
+The process involves three main parts:
 
-```python
-def register_function_routes(api):
-    @api.route('/some_function/', methods=["GET"])
-    def some_function():
-        # Access the current Revit document
-        doc = revit.doc
-        
-        # Your Revit API logic here
-        value = some_action(doc)
-        
-        return routes.make_response(data=value)
-```
+## Part 1: Create the Route Module in Revit
 
-Register your new module's routes in startup.py.
+Create a new Python file within the `revit-mcp-python.extension/revit_mcp/` directory (e.g., `revit_mcp/your_module.py`). This module will contain all the related functions you want to expose.
 
 ```python
-# ... (existing imports)
-from revit_mcp.my_new_feature import register_function_routes # Your new module
+# In revit-mcp-python.extension/revit_mcp/your_module.py
 
-api = routes.API('revit_mcp')
+# -*- coding: UTF-8 -*-
+"""
+Your Module for Revit MCP
+Handles your specific functionality.
+"""
+from pyrevit import routes, revit, DB
+import json
+import logging
 
-def register_routes():
-    try:
-        # ... (existing route registrations)
-        register_function_routes(api) # Register your new routes
+# Standard logger setup
+logger = logging.getLogger(__name__)
 
-        logger.info("All MCP routes registered successfully")
-    except Exception as e:
-        logger.error(f"Failed to register MCP routes:{str(e)}")
-        raise
-
-register_routes()
-```
-
-Create a corresponding MCP tool in `main.py`:
-
-```python
-@mcp.tool()
-async def execute_function() -> str:
-    """
-    Description of what this tool does
-    """
-    try:
-        url = f"{BASE_URL}/function/"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                return f"Error: {response.status_code}"
-    except Exception as e:
-        return f"Error: {str(e)}"
-```
-
-### Creating Actions in the Model
-
-For operations that modify the model use POST requests with JSON payloads:
-
-```python
-def register_function_routes(api):
+def register_your_routes(api):
+    """Register all your routes with the API."""
+    
+    # ---- Example 1: A GET request for reading data ----
+    @api.route('/your_endpoint/', methods=["GET"])
+    def get_project_title(doc):
+        """Gets the project title from the Revit model."""
+        try:
+            value = doc.Title
+            return routes.make_response(data={"status": "success", "data": value})
+        except Exception as e:
+            logger.error("Get project title failed: {}".format(str(e)))
+            return routes.make_response(data={"error": str(e)}, status=500)
+    
+    # ---- Example 2: A POST request for modifying the model ----
     @api.route('/modify_model/', methods=["POST"])
     def modify_model(doc, request):
-        """Handle POST requests - for modifying the Revit model"""
+        """Handles POST requests for modifying the Revit model."""
         try:
-            # Parse request data
             data = json.loads(request.data) if isinstance(request.data, str) else request.data
             
-            # Extract parameters from the request
-            operation_type = data.get("operation")
-            parameters = data.get("parameters", {})
+            # Use a transaction for all model modifications
+            t = DB.Transaction(doc, "Modify Model via MCP")
+            t.Start()
             
-            # Use transaction context manager for automatic commit/rollback
-            with DB.Transaction(doc, "Modify Model via MCP") as t:
-                t.Start()
+            try:
+                element_id = data.get("element_id")
+                new_value = data.get("new_value")
+                element = doc.GetElement(DB.ElementId(int(element_id)))
+                param = element.LookupParameter("Comments")
+                param.Set(new_value)
                 
-                # Your Revit API logic to modify the model
-                result = perform_modification(doc, operation_type, parameters)
-                
-                # Transaction will automatically commit when exiting the 'with' block
-                # or rollback if an exception occurs
-                
-            return routes.make_response(data={
-                "status": "success",
-                "result": result
-            })
+                t.Commit()
+                return routes.make_response(data={"status": "success", "result": "Element modified."})
+            
+            except Exception as tx_error:
+                if t.HasStarted() and not t.HasEnded():
+                    t.RollBack()
+                raise tx_error
                 
         except Exception as e:
-            return routes.make_response(
-                data={"error": str(e)},
-                status=500
-            )
+            logger.error("Modify model failed: {}".format(str(e)))
+            return routes.make_response(data={"error": str(e)}, status=500)
+    
+    logger.info("Your custom routes were registered successfully.")
 ```
 
+## Part 2: Create the MCP Tool Module
+
+Create the corresponding tools for the MCP server in the `tools/` directory (e.g., `tools/your_tools.py`). This module will use the `revit_get` and `revit_post` helpers from `main.py`.
 
 ```python
-# and in main.py: 
+# In tools/your_tools.py
+"""Your tools for the MCP server."""
 
-# In main.py
-@mcp.tool()
-async def modify_model(
-    operation: str,
-    parameters: Dict[str, Any],
-    ctx: Context = None
-) -> str:
-    """
-    Modify the Revit model based on specified operation and parameters
+from mcp.server.fastmcp import Context
+from typing import Dict, Any
+
+def register_your_tools(mcp, revit_get, revit_post, revit_image=None):
+    """Register your tools with the MCP server."""
     
-    Args:
-        operation: The type of modification to perform
-        parameters: Dictionary containing operation-specific parameters
-        ctx: MCP context for logging
+    # ---- Tool for the GET request ----
+    @mcp.tool()
+    async def get_revit_project_title(ctx: Context) -> str:
+        """
+        Retrieves the title of the currently open Revit project.
+        """
+        ctx.info("Getting project title...")
+        return await revit_get("/your_endpoint/", ctx)
     
-    Returns:
-        Success message with operation details or error information
-    """
-    try:
-        data = {
-            "operation": operation,
-            "parameters": parameters
-        }
+    # ---- Tool for the POST request ----
+    @mcp.tool()
+    async def modify_revit_element_comment(
+        element_id: int,
+        new_value: str,
+        ctx: Context = None
+    ) -> str:
+        """
+        Modifies the 'Comments' parameter of a specific element.
         
-        url = f"{BASE_URL}/modify_model/"
-        ctx.info(f"Performing operation: {operation}")
-        
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                url,
-                json=data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                ctx.info("Operation completed successfully")
-                return result
-            else:
-                error_msg = f"Error: {response.status_code} - {response.text}"
-                ctx.error(error_msg)
-                return error_msg
-                
-    except Exception as e:
-        error_msg = f"Error connecting to Revit: {str(e)}"
-        ctx.error(error_msg)
-        return error_msg
+        Args:
+            element_id: The ID of the element to modify.
+            new_value: The new comment to apply to the element.
+        """
+        try:
+            payload = {"element_id": element_id, "new_value": new_value}
+            ctx.info("Attempting to modify element {}...".format(element_id))
+            return await revit_post("/modify_model/", payload, ctx)
+        except Exception as e:
+            error_msg = "Error during tool execution: {}".format(str(e))
+            ctx.error(error_msg)
+            return error_msg
 ```
+
+## Part 3: Register Your New Modules
+
+### 1. Register the Route Module
+
+Open `revit-mcp-python.extension/startup.py` and add your new route registration function.
+
+```python
+# In revit-mcp-python.extension/startup.py
+
+# ... (other imports)
+# Import the registration function from your new module
+from revit_mcp.your_module import register_your_routes
+
+def register_routes():
+    """Register all MCP route modules"""
+    api = routes.API('revit_mcp')
+    try:
+        # ... (existing route registrations)
+        
+        # Register your new routes (this registers all functions inside)
+        register_your_routes(api)
+        
+        logger.info("All MCP routes registered successfully")
+    except Exception as e:
+        logger.error("Failed to register MCP routes: {}".format(str(e)))
+        raise
+```
+
+### 2. Register the Tool Module
+
+Open `tools/__init__.py` and add your new tool registration function.
+
+```python
+# In tools/__init__.py
+
+# ... (other tool imports)
+# Import the registration function from your new tool module
+from .your_tools import register_your_tools
+
+def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func):
+    """Register all tools with the MCP server"""
+    
+    # ... (existing tool registrations)
+    # Register your new tools (this registers all tools inside)
+    register_your_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func)
+    
+    return mcp_server
+```
+
 
 ## Roadmap
 
 This is a work in progress and more of a demonstration than a fully-featured product. Future improvements could include:
 
-- **Testing with other MCP clients and more LLMs**
-- **Creating a Dockerfile for seamless installation**
+- **Creating a Client inside Revit**
+- **Implementing compatibilities with other language Models**
 - **Authentication and security enhancements**
 - **More advanced Revit tools and capabilities**
 - **Better error handling and debugging features**
+- **Benchmarking with local models**
 - **Documentation and examples for common use cases**
 - **...**
 
