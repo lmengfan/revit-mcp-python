@@ -1,7 +1,9 @@
 import httpx
 from mcp.server.fastmcp import FastMCP, Image, Context
+import json
 import base64
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, List
+
 
 # Create a generic MCP server for interacting with Revit
 mcp = FastMCP("Revit MCP Server")
@@ -12,52 +14,444 @@ REVIT_PORT = 48884  # Default pyRevit Routes port
 BASE_URL = f"http://{REVIT_HOST}:{REVIT_PORT}/revit_mcp"
 
 
-async def revit_get(endpoint: str, ctx: Context = None, **kwargs) -> Union[Dict, str]:
-    """Simple GET request to Revit API"""
-    return await _revit_call("GET", endpoint, ctx=ctx, **kwargs)
+@mcp.tool()
+async def get_revit_status(ctx: Context) -> str:
+    """
+    Check if the Revit MCP API is active and responding
 
-
-async def revit_post(endpoint: str, data: Dict[str, Any], ctx: Context = None, **kwargs) -> Union[Dict, str]:
-    """Simple POST request to Revit API"""
-    return await _revit_call("POST", endpoint, data=data, ctx=ctx, **kwargs)
-
-
-async def revit_image(endpoint: str, ctx: Context = None) -> Union[Image, str]:
-    """GET request that returns an Image object"""
+    Returns:
+        Status information about the Revit MCP API connection
+    """
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{BASE_URL}{endpoint}")
-            
+        url = f"{BASE_URL}/status/"
+        ctx.info(f"Checking Revit API status at: {url}")
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url)
+
             if response.status_code == 200:
-                data = response.json()
-                image_bytes = base64.b64decode(data["image_data"])
-                return Image(data=image_bytes, format="png")
+                return response.json()
             else:
                 return f"Error: {response.status_code} - {response.text}"
+
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error connecting to Revit: {str(e)}"
 
 
-async def _revit_call(method: str, endpoint: str, data: Dict = None, ctx: Context = None, 
-                     timeout: float = 30.0, params: Dict = None) -> Union[Dict, str]:
-    """Internal function handling all HTTP calls"""
+@mcp.tool()
+async def get_revit_model_info(ctx: Context) -> str:
+    """
+    Get comprehensive information about the current Revit model
+
+    This tool provides model information including:
+    - Project details (name, number, client)
+    - Element counts by major architectural categories
+    - Model health indicators (warnings, unplaced rooms)
+    - Spatial organization (levels, rooms with areas)
+    - Documentation status (views, sheets)
+    - Linked model information
+
+    Returns:
+        Detailed JSON information about the Revit model structure and contents
+    """
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            url = f"{BASE_URL}{endpoint}"
-            
-            if method == "GET":
-                response = await client.get(url, params=params)
-            else:  # POST
-                response = await client.post(url, json=data, headers={"Content-Type": "application/json"})
-            
-            return response.json() if response.status_code == 200 else f"Error: {response.status_code} - {response.text}"
+        url = f"{BASE_URL}/model_info/"
+        ctx.info("Retrieving comprehensive Revit model information")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+
+            if response.status_code == 200:
+                return response.json()
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
     except Exception as e:
-        return f"Error: {e}"
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
 
 
-# Register all tools BEFORE the main block
-from tools import register_tools
-register_tools(mcp, revit_get, revit_post, revit_image)
+@mcp.tool()
+async def get_revit_view(view_name: str, ctx: Context = None) -> str:
+    """
+    Export a specific Revit view as an image
+
+    Args:
+        view_name: The exact name of the view to export (case-sensitive)
+        ctx: MCP context for logging
+
+    Returns:
+        Base64 encoded PNG image data of the specified view, or error message
+    """
+    try:
+        url = f"{BASE_URL}/get_view/{view_name}"
+        ctx.info(f"Exporting Revit view: {view_name}")
+
+        async with httpx.AsyncClient(
+            timeout=60.0
+        ) as client:  # Longer timeout for image export
+            response = await client.get(url)
+
+            if response.status_code == 200:
+                data = response.json()
+                ctx.info("Successfully retrieved view")
+
+                # Convert base64 string to bytes
+                image_bytes = base64.b64decode(data["image_data"])
+
+                # Return MCP Image object
+                return Image(data=image_bytes, format="png")
+            else:
+                error_msg = (
+                    f"Error retrieving view: {response.status_code} - {response.text}"
+                )
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def list_revit_views(ctx: Context = None) -> str:
+    """
+    Get a list of all exportable views in the current Revit model
+
+    Returns:
+        Dictionary containing all available views organized by type
+        (floor plans, elevations, sections, 3D views, etc.)
+    """
+    try:
+        url = f"{BASE_URL}/list_views/"
+        ctx.info("Retrieving list of available Revit views")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+
+            if response.status_code == 200:
+                result = response.json()
+                total_views = result.get("total_exportable_views", 0)
+                ctx.info(f"Found {total_views} exportable views")
+                return result
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def place_family(
+    family_name: str,
+    type_name: str = None,
+    x: float = 0.0,
+    y: float = 0.0,
+    z: float = 0.0,
+    rotation: float = 0.0,
+    level_name: str = None,
+    properties: Dict[str, Any] = None,
+    ctx: Context = None,
+) -> str:
+    """
+    Place a family instance at a specified location in the Revit model
+
+    Args:
+        family_name: Name of the family to place
+        type_name: Specific type/size of the family (optional)
+        x: X coordinate for placement
+        y: Y coordinate for placement
+        z: Z coordinate for placement (elevation)
+        rotation: Rotation in degrees (optional)
+        level_name: Name of the level to place on (optional)
+        properties: Dictionary of parameter values to set (optional)
+        ctx: MCP context for logging
+
+    Returns:
+        Success message with placement details or error information
+    """
+    try:
+        data = {
+            "family_name": family_name,
+            "type_name": type_name,
+            "location": {"x": x, "y": y, "z": z},
+            "rotation": rotation,
+            "level_name": level_name,
+            "properties": properties or {},
+        }
+
+        url = f"{BASE_URL}/place_family/"
+        ctx.info(f"Placing family: {family_name} - {type_name or 'Default Type'}")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url, json=data, headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                ctx.info("Family placed successfully")
+                return result
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def list_families(
+    contains: str = None, limit: int = 50, ctx: Context = None
+) -> str:
+    """
+    Get a flat list of up to 50 available family types in the current Revit model.
+    Args:
+        contains: Only include families containing this text (case-insensitive)
+        limit: Maximum number of family types to return (default: 50)
+        ctx: MCP context for logging
+    Returns:
+        List of families with their type, category, and activation status
+    """
+    try:
+        params = {}
+        if contains:
+            params["contains"] = contains
+        if limit != 50:
+            params["limit"] = str(limit)
+        url = f"{BASE_URL}/list_families/"
+        filter_text = f"containing '{contains}'" if contains else "no filters"
+        ctx.info(f"Retrieving up to {limit} families {filter_text}")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, params=params)
+            if response.status_code == 200:
+                result = response.json()
+                families = result.get("families", [])
+                ctx.info(f"Found {len(families)} families")
+                return families
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def list_family_categories(ctx: Context = None) -> str:
+    """
+    Get a list of all family categories in the current Revit model
+    This helps users know what categories are available for filtering
+
+    Returns:
+        Dictionary containing all family categories with counts
+    """
+    try:
+        url = f"{BASE_URL}/list_family_categories/"
+        ctx.info("Retrieving list of family categories")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+
+            if response.status_code == 200:
+                result = response.json()
+                total_categories = result.get("total_categories", 0)
+                ctx.info(f"Found {total_categories} family categories")
+                return result
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def list_levels(ctx: Context = None) -> str:
+    """
+    Get a list of all levels in the current Revit model
+
+    Returns:
+        Dictionary containing all available levels with their elevations
+    """
+    try:
+        url = f"{BASE_URL}/list_levels/"
+        ctx.info("Retrieving list of available levels")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+
+            if response.status_code == 200:
+                result = response.json()
+                total_levels = result.get("total_levels", 0)
+                ctx.info(f"Found {total_levels} levels")
+                return result
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def color_splash(
+    category_name: str,
+    parameter_name: str,
+    use_gradient: bool = False,
+    custom_colors: Optional[List[str]] = None,
+    ctx: Context = None,
+) -> str:
+    """
+    Color elements in a category based on parameter values
+
+    This tool applies color coding to Revit elements within a specified category
+    based on their parameter values. Elements with the same parameter value
+    will receive the same color.
+
+    Args:
+        category_name: Name of the category to color (e.g., "Walls", "Doors", "Windows")
+        parameter_name: Name of the parameter to use for coloring (e.g., "Mark", "Type Name")
+        use_gradient: Whether to use gradient coloring instead of distinct colors (default: False)
+        custom_colors: Optional list of custom colors in hex format (e.g., ["#FF0000", "#00FF00"])
+        ctx: MCP context for logging
+
+    Returns:
+        Results of the coloring operation including statistics and color assignments
+    """
+    try:
+        data = {
+            "category_name": category_name,
+            "parameter_name": parameter_name,
+            "use_gradient": use_gradient,
+        }
+
+        if custom_colors:
+            data["custom_colors"] = custom_colors
+
+        url = f"{BASE_URL}/color_splash/"
+        ctx.info(f"Color splashing {category_name} elements by {parameter_name}")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url, json=data, headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                ctx.info("Color splashing completed successfully")
+                return json.dumps(result, indent=2)
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def clear_colors(category_name: str, ctx: Context = None) -> str:
+    """
+    Clear color overrides for elements in a category
+
+    This tool removes all color overrides that have been applied to elements
+    in the specified category, returning them to their default appearance.
+
+    Args:
+        category_name: Name of the category to clear colors from (e.g., "Walls", "Doors")
+        ctx: MCP context for logging
+
+    Returns:
+        Results of the clear operation including count of elements processed
+    """
+    try:
+        data = {"category_name": category_name}
+
+        url = f"{BASE_URL}/clear_colors/"
+        ctx.info(f"Clearing color overrides for {category_name} elements")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url, json=data, headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                ctx.info("Color clearing completed successfully")
+                return json.dumps(result, indent=2)
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
+
+
+@mcp.tool()
+async def list_category_parameters(category_name: str, ctx: Context = None) -> str:
+    """
+    Get available parameters for elements in a category
+
+    This tool lists all the parameters available on elements within a specified
+    category. This is useful for determining which parameters can be used for
+    coloring or other operations.
+
+    Args:
+        category_name: Name of the category to check parameters for (e.g., "Walls", "Doors")
+        ctx: MCP context for logging
+
+    Returns:
+        List of available parameters with their storage types and whether they have values
+    """
+    try:
+        data = {"category_name": category_name}
+
+        url = f"{BASE_URL}/list_category_parameters/"
+        ctx.info(f"Listing parameters for {category_name} category")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url, json=data, headers={"Content-Type": "application/json"}
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                ctx.info("Parameter listing completed successfully")
+                return json.dumps(result, indent=2)
+            else:
+                error_msg = f"Error: {response.status_code} - {response.text}"
+                ctx.error(error_msg)
+                return error_msg
+
+    except Exception as e:
+        error_msg = f"Error connecting to Revit: {str(e)}"
+        ctx.error(error_msg)
+        return error_msg
 
 
 if __name__ == "__main__":
