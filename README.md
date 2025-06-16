@@ -71,13 +71,13 @@ It contains:
 | `get_current_view_info` | ✅ Implemented | View Information | Get detailed information about the currently active view |
 | `get_current_view_elements` | ✅ Implemented | View Information | Get all elements visible in the current view |
 | `get_selected_elements` | 🔄 Pending | Selection Management | Get information about currently selected elements |
-| `create_point_based_element` | ✅ Implemented* | Element Creation | Create point-based elements (doors, windows, furniture) |
+| `create_point_based_element` | ✅ Implemented | Element Creation | Create point-based elements (doors, windows, furniture) |
 | `create_line_based_element` | 🔄 Pending | Element Creation | Create line-based elements (walls, beams, pipes) |
 | `create_surface_based_element` | 🔄 Pending | Element Creation | Create surface-based elements (floors, ceilings) |
 | `delete_elements` | 🔄 Pending | Element Management | Delete specified elements from the model |
 | `modify_element` | 🔄 Pending | Element Management | Modify element properties (instance parameters) |
 | `reset_model` | 🔄 Pending | Element Management | Reset model by deleting process model elements |
-| `color_splash` | 🔄 Pending | Visualization | Color elements based on parameter values |
+| `color_splash` | ✅ Implemented | Visualization | Color elements based on parameter values |
 | `tag_walls` | 🔄 Pending | Annotation | Tag all walls in the current view |
 | `search_modules` | 🔄 Pending | Integration | Search for available modules/addins |
 | `use_module` | 🔄 Pending | Integration | Execute functionality from external modules |
