@@ -1,4 +1,3 @@
-
 # Simple Revit MCP
 
 ## **Context** | 
@@ -26,6 +25,7 @@ revit-mcp-python/
 │   ├── model_tools.py                        # Model information tools
 │   ├── view_tools.py                         # View export and image tools
 │   └── family_tools.py                       # Family placement and management tools
+|   └── colors_tools.py                       # Color splashing tools
 ├── revit-mcp-python.extension/               # pyRevit Extension
 │   ├── startup.py                            # Extension entry point - registers all routes
 │   └── revit_mcp/                            # Routes API modules (organized by functionality)
@@ -35,6 +35,7 @@ revit-mcp-python/
 │       ├── views.py                          # View export endpoints
 │       ├── placement.py                      # Family placement endpoints
 │       └── utils.py                          # Utility functions for IronPython compatibility
+|       └── colors.py                         # Color splashing endpoints
 ├── requirements.txt                          # Python dependencies
 ├── pyproject.toml                           # Project configuration
 └── README.md                                # Project documentation
@@ -430,6 +431,14 @@ The current implementation provides these tools organized by category:
 - **list_families**: Get a flat list of available family types in the current Revit model
   - Parameters: contains (filter), limit (max results)
 - **list_family_categories**: Get a list of all family categories in the current Revit model
+
+### **Code Execution Tools**
+- **execute_revit_code**: Execute IronPython code directly in Revit context
+  - Parameters: code (string), description (optional)
+  - Provides access to doc, DB, revit modules
+  - Returns execution output and any print statements
+  - Handles transactions automatically for model modifications
+  - Use when existing MCP tools cannot accomplish the needed functionality
 
 ---
 
