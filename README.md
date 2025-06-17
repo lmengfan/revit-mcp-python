@@ -44,13 +44,6 @@ It contains:
 - Each module registers its own tools with the MCP server
 
 
-4. **Color Splash** - Visualize data through color coding:
-   - Color elements by parameter values with distinct hues
-   - Use gradient coloring for numerical data
-   - Custom color schemes with hex values
-   - Clear color overrides to restore default appearance
-   - List available parameters for any category
-
 ---
 
 ## **Supported Tools**
