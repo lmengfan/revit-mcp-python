@@ -37,6 +37,10 @@ def register_routes():
 
         register_color_routes(api)
 
+        from revit_mcp.code_execution import register_code_execution_routes
+
+        register_code_execution_routes(api)
+
         logger.info("All MCP routes registered successfully")
 
     except Exception as e:
