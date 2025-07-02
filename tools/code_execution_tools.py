@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 """Code execution tools for the MCP server."""
 
 from mcp.server.fastmcp import Context
+from .utils import format_response
 
 
 def register_code_execution_tools(mcp, revit_get, revit_post, revit_image=None):
@@ -53,7 +55,8 @@ def register_code_execution_tools(mcp, revit_get, revit_post, revit_image=None):
             if ctx:
                 ctx.info("Executing code: {}".format(description))
 
-            return await revit_post("/execute_code/", payload, ctx)
+            response = await revit_post("/execute_code/", payload, ctx)
+            return format_response(response)
 
         except (ConnectionError, ValueError, RuntimeError) as e:
             error_msg = "Error during code execution: {}".format(str(e))

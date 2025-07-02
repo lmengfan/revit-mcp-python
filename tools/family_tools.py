@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 """Family and placement tools"""
 
 from mcp.server.fastmcp import Context
 from typing import Dict, Any
+from .utils import format_response
 
 
 def register_family_tools(mcp, revit_get, revit_post):
     """Register family-related tools"""
-    
+
     @mcp.tool()
     async def place_family(
         family_name: str,
@@ -17,7 +19,7 @@ def register_family_tools(mcp, revit_get, revit_post):
         rotation: float = 0.0,
         level_name: str = None,
         properties: Dict[str, Any] = None,
-        ctx: Context = None
+        ctx: Context = None,
     ) -> str:
         """Place a family instance at a specified location in the Revit model"""
         data = {
@@ -26,15 +28,14 @@ def register_family_tools(mcp, revit_get, revit_post):
             "location": {"x": x, "y": y, "z": z},
             "rotation": rotation,
             "level_name": level_name,
-            "properties": properties or {}
+            "properties": properties or {},
         }
-        return await revit_post("/place_family/", data, ctx)
+        response = await revit_post("/place_family/", data, ctx)
+        return format_response(response)
 
     @mcp.tool()
     async def list_families(
-        contains: str = None,
-        limit: int = 50,
-        ctx: Context = None
+        contains: str = None, limit: int = 50, ctx: Context = None
     ) -> str:
         """Get a flat list of available family types in the current Revit model"""
         params = {}
@@ -42,11 +43,12 @@ def register_family_tools(mcp, revit_get, revit_post):
             params["contains"] = contains
         if limit != 50:
             params["limit"] = str(limit)
-        
+
         result = await revit_get("/list_families/", ctx, params=params)
-        return result.get("families", []) if isinstance(result, dict) else result
+        return format_response(result)
 
     @mcp.tool()
     async def list_family_categories(ctx: Context = None) -> str:
         """Get a list of all family categories in the current Revit model"""
-        return await revit_get("/list_family_categories/", ctx)
+        response = await revit_get("/list_family_categories/", ctx)
+        return format_response(response)

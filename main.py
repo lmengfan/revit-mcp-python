@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import httpx
 from mcp.server.fastmcp import FastMCP, Image, Context
 import base64

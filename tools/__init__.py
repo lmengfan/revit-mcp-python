@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tool registration system for Revit MCP Server"""
 
 
