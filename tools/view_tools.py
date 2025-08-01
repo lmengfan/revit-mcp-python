@@ -11,7 +11,7 @@ def register_view_tools(mcp, revit_get, revit_post, revit_image):
     @mcp.tool()
     async def get_revit_view(view_name: str, ctx: Context = None) -> str:
         """Export a specific Revit view as an image"""
-        response = await revit_image(f"/get_view/{view_name}", ctx)
+        response = await revit_image("/get_view/{}".format(view_name), ctx)
         # Note: revit_image already returns a formatted response (Image object or error string)
         return str(response) if not isinstance(response, str) else response
 

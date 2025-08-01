@@ -18,6 +18,7 @@ def register_code_execution_routes(api):
     """Register code execution routes with the API."""
 
     @api.route("/execute_code/", methods=["POST"])
+    @api.route("/execute_code", methods=["POST"])
     def execute_code(doc, request):
         """
         Execute IronPython code in Revit context.
@@ -45,11 +46,12 @@ def register_code_execution_routes(api):
 
             logger.info("Executing code: {}".format(description))
 
-            # Create a transaction for any model modifications
-            t = DB.Transaction(doc, "MCP Code Execution: {}".format(description))
-            t.Start()
+
 
             try:
+                # Create a transaction for any model modifications
+                t = DB.Transaction(doc, "MCP Code Execution: {}".format(description))
+                t.Start()
                 # Capture stdout to return any print statements
                 old_stdout = sys.stdout
                 captured_output = StringIO()

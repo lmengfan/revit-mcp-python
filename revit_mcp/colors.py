@@ -1085,6 +1085,7 @@ def register_color_routes(api):
     """Register color-related routes with the API"""
 
     @api.route("/color_splash/", methods=["POST"])
+    @api.route("/color_splash", methods=["POST"])
     def color_splash(doc, request):
         """
         Color elements in a category based on parameter values
@@ -1119,13 +1120,14 @@ def register_color_routes(api):
                 doc, category_name, parameter_name, use_gradient, custom_colors
             )
 
-            return routes.make_response(data=result)
+            return routes.make_response(data=result, status=200)
 
         except Exception as e:
             logger.error("Error in color_splash route: %s", e)
             return routes.make_response(data={"error": str(e)}, status=500)
 
     @api.route("/clear_colors/", methods=["POST"])
+    @api.route("/clear_colors", methods=["POST"])
     def clear_colors(doc, request):
         """
         Clear color overrides for elements in a category
@@ -1151,13 +1153,14 @@ def register_color_routes(api):
 
             result = clear_element_colors(doc, category_name)
 
-            return routes.make_response(data=result)
+            return routes.make_response(data=result, status=200)
 
         except Exception as e:
             logger.error("Error in clear_colors route: %s", e)
             return routes.make_response(data={"error": str(e)}, status=500)
 
     @api.route("/list_category_parameters/", methods=["POST"])
+    @api.route("/list_category_parameters", methods=["POST"])
     def list_parameters(doc, request):
         """
         Get available parameters for elements in a category
@@ -1183,7 +1186,7 @@ def register_color_routes(api):
 
             result = list_category_parameters(doc, category_name)
 
-            return routes.make_response(data=result)
+            return routes.make_response(data=result, status=200)
 
         except Exception as e:
             logger.error("Error in list_category_parameters route: %s", e)

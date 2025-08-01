@@ -10,7 +10,7 @@ mcp = FastMCP("Revit MCP Server")
 # Configuration
 REVIT_HOST = "localhost"
 REVIT_PORT = 48884  # Default pyRevit Routes port
-BASE_URL = f"http://{REVIT_HOST}:{REVIT_PORT}/revit_mcp"
+BASE_URL = "http://{}:{}/revit_mcp".format(REVIT_HOST, REVIT_PORT)
 
 
 async def revit_get(endpoint: str, ctx: Context = None, **kwargs) -> Union[Dict, str]:
@@ -27,16 +27,16 @@ async def revit_image(endpoint: str, ctx: Context = None) -> Union[Image, str]:
     """GET request that returns an Image object"""
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{BASE_URL}{endpoint}")
+            response = await client.get("{}{}".format(BASE_URL, endpoint))
             
             if response.status_code == 200:
                 data = response.json()
                 image_bytes = base64.b64decode(data["image_data"])
                 return Image(data=image_bytes, format="png")
             else:
-                return f"Error: {response.status_code} - {response.text}"
+                return "Error: {} - {}".format(response.status_code, response.text)
     except Exception as e:
-        return f"Error: {e}"
+        return "Error: {}".format(e)
 
 
 async def _revit_call(method: str, endpoint: str, data: Dict = None, ctx: Context = None, 
@@ -44,16 +44,16 @@ async def _revit_call(method: str, endpoint: str, data: Dict = None, ctx: Contex
     """Internal function handling all HTTP calls"""
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
-            url = f"{BASE_URL}{endpoint}"
+            url = "{}{}".format(BASE_URL, endpoint)
             
             if method == "GET":
                 response = await client.get(url, params=params)
             else:  # POST
                 response = await client.post(url, json=data, headers={"Content-Type": "application/json"})
             
-            return response.json() if response.status_code == 200 else f"Error: {response.status_code} - {response.text}"
+            return response.json() if response.status_code == 200 else "Error: {} - {}".format(response.status_code, response.text)
     except Exception as e:
-        return f"Error: {e}"
+        return "Error: {}".format(e)
 
 
 # Register all tools BEFORE the main block

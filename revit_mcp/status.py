@@ -13,6 +13,7 @@ def register_status_routes(api):
     """Register all status-related routes with the API"""
     
     @api.route('/status/', methods=["GET"])
+    @api.route('/status', methods=["GET"])
     def revit_status():
         """
         Health check endpoint that verifies Revit context availability
@@ -31,7 +32,7 @@ def register_status_routes(api):
                     "revit_available": True,
                     "document_title": doc.Title if doc.Title else "Untitled",
                     "api_name": "revit_mcp"
-                })
+                }, status=200)
             else:
                 return routes.make_response(data={
                     "status": "unhealthy", 

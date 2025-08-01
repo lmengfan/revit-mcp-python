@@ -17,6 +17,7 @@ def register_placement_routes(api):
     """Register all placement-related routes with the API"""
 
     @api.route("/place_family/", methods=["POST"])
+    @api.route("/place_family", methods=["POST"])
     def place_family(doc, request):
         """
         Place a family instance at a specified location in the model.
@@ -167,12 +168,13 @@ def register_placement_routes(api):
                     status=400,
                 )
 
-            # Start a transaction
-            transaction_name = "Place Family Instance via MCP"
-            t = DB.Transaction(doc, transaction_name)
-            t.Start()
+
 
             try:
+                            # Start a transaction
+                transaction_name = "Place Family Instance via MCP"
+                t = DB.Transaction(doc, transaction_name)
+                t.Start()
                 # Ensure the symbol is activated
                 if not target_symbol.IsActive:
                     target_symbol.Activate()
@@ -286,7 +288,7 @@ def register_placement_routes(api):
                     "properties_failed": properties_failed,
                 }
 
-                return routes.make_response(data=response_data)
+                return routes.make_response(data=response_data, status=200)
 
             except Exception as tx_error:
                 # Roll back the transaction if something went wrong
@@ -303,6 +305,7 @@ def register_placement_routes(api):
             )
 
     @api.route("/list_families/", methods=["GET"])
+    @api.route("/list_families", methods=["GET"])
     def list_families(doc, request):
         """
         Simplified: Get a flat list of up to 50 family names and their types in the current Revit model.
@@ -351,6 +354,7 @@ def register_placement_routes(api):
             )
 
     @api.route("/list_family_categories/", methods=["GET"])
+    @api.route("/list_family_categories", methods=["GET"])
     def list_family_categories(doc):
         """
         Get a list of all family categories in the current Revit model
@@ -411,6 +415,7 @@ def register_placement_routes(api):
             )
 
     @api.route("/list_levels/", methods=["GET"])
+    @api.route("/list_levels", methods=["GET"])
     def list_levels(doc):
         """
         Get a list of all levels in the current Revit model

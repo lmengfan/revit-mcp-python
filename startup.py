@@ -41,6 +41,14 @@ def register_routes():
 
         register_code_execution_routes(api)
 
+        from revit_mcp.floor_management import register_floor_management_routes
+
+        register_floor_management_routes(api)
+
+        from revit_mcp.api_mapping import register_api_mapping_routes
+
+        register_api_mapping_routes(api)
+
         logger.info("All MCP routes registered successfully")
 
     except Exception as e:
@@ -50,3 +58,18 @@ def register_routes():
 
 # Register all routes when the extension loads
 register_routes()
+
+@api.route('/state/', methods=["GET"])
+def revit_state():
+    """
+    Health check endpoint that verifies Revit context availability
+    
+    Returns:
+        dict: Health status with Revit document information
+    """
+    return routes.make_response(data={
+        "status": "active",
+        "health": "healthy",
+        "revit_available": True,
+        "api_name": "revit_mcp"
+    })

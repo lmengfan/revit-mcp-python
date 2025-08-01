@@ -197,6 +197,7 @@ def register_views_routes(api):
             )
 
     @api.route("/list_views/", methods=["GET"])
+    @api.route("/list_views", methods=["GET"])
     def list_views(doc):
         """
         Get a list of all exportable views in the current Revit model
@@ -285,6 +286,7 @@ def register_views_routes(api):
             )
 
     @api.route("/current_view_info/", methods=["GET"])
+    @api.route("/current_view_info", methods=["GET"])
     def get_current_view_info(uidoc):
         """
         Get detailed information about the currently active view.
@@ -369,6 +371,7 @@ def register_views_routes(api):
             )
 
     @api.route("/current_view_elements/", methods=["GET"])
+    @api.route("/current_view_elements", methods=["GET"])
     def get_current_view_elements(doc, uidoc):
         """
         Get all elements visible in the current view.
@@ -497,7 +500,7 @@ def register_views_routes(api):
                 "category_counts": category_counts,
             }
 
-            return routes.make_response(data=result)
+            return routes.make_response(data=result, status=200)
 
         except Exception as e:
             logger.error("Get current view elements failed: {}".format(str(e)))

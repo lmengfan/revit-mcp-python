@@ -19,3 +19,8 @@ def register_status_tools(mcp, revit_get):
         """Get comprehensive information about the current Revit model"""
         response = await revit_get("/model_info/", ctx)
         return format_response(response)
+
+    @mcp.tool()
+    async def get_http_base_url(ctx: Context) -> str:
+        """Get the HTTP base URL for the Revit MCP server"""
+        return "http://localhost:48884"
