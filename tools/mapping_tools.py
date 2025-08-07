@@ -28,12 +28,12 @@ def register_mapping_tools(mcp, revit_get):
                 "status": "success",
                 "message": "MCP to HTTP API mapping",
                 "data": {
-                    "base_url": "http://127.0.0.1:8080",
+                    "base_url": "http://localhost:48884",
                     "mappings": {
                         "mcp_tool_name": {
                             "http_method": "POST|GET|PUT|DELETE",
-                            "http_endpoint": "/api/endpoint",
-                            "http_url": "http://127.0.0.1:8080/api/endpoint",
+                            "http_endpoint": "/revit_mcp/endpoint",
+                            "http_url": "http://localhost:48884/revit_mcp/endpoint",
                             "request_body": {...},
                             "mcp_example": "...",
                             "http_example": "..."

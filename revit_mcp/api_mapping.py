@@ -47,7 +47,7 @@ def register_api_mapping_routes(api):
                         "description": "Check if Revit MCP API is active and responding",
                         "request_body": None,
                         "mcp_example": "await get_revit_status()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/status/",
+                        "http_example": "GET http://localhost:48884/revit_mcp/status/",
                         "response_format": {
                             "status": "active",
                             "health": "healthy", 
@@ -65,7 +65,7 @@ def register_api_mapping_routes(api):
                         "description": "Get comprehensive information about the current Revit model",
                         "request_body": None,
                         "mcp_example": "await get_revit_model_info()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/model_info/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/model_info/"
                     },
                     
                     "get_selected_elements": {
@@ -75,7 +75,7 @@ def register_api_mapping_routes(api):
                         "description": "Get information about currently selected elements in Revit",
                         "request_body": None,
                         "mcp_example": "await get_selected_elements()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/selected_elements/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/selected_elements/"
                     },
                     
                     "get_floor_details": {
@@ -85,7 +85,7 @@ def register_api_mapping_routes(api):
                         "description": "Get comprehensive information about selected floor elements",
                         "request_body": None,
                         "mcp_example": "await get_floor_details()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/floor_details/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/floor_details/"
                     },
                     
                     # View Tools
@@ -96,7 +96,7 @@ def register_api_mapping_routes(api):
                         "description": "Get a list of all exportable views in the current Revit model",
                         "request_body": None,
                         "mcp_example": "await list_revit_views()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/views/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/views/"
                     },
                     
                     "get_revit_view": {
@@ -106,7 +106,7 @@ def register_api_mapping_routes(api):
                         "description": "Export a specific Revit view as an image",
                         "request_body": None,
                         "mcp_example": "await get_revit_view(view_name='Floor Plan: Level 1')",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/view_image/?view_name=Floor%20Plan:%20Level%201",
+                        "http_example": "GET http://localhost:48884/revit_mcp/view_image/?view_name=Floor%20Plan:%20Level%201",
                         "query_parameters": {
                             "view_name": "Name of the view to export"
                         }
@@ -119,7 +119,7 @@ def register_api_mapping_routes(api):
                         "description": "Get detailed information about the currently active view",
                         "request_body": None,
                         "mcp_example": "await get_current_view_info()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/current_view_info/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/current_view_info/"
                     },
                     
                     "get_current_view_elements": {
@@ -129,7 +129,7 @@ def register_api_mapping_routes(api):
                         "description": "Get all elements visible in the currently active view",
                         "request_body": None,
                         "mcp_example": "await get_current_view_elements()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/current_view_elements/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/current_view_elements/"
                     },
                     
                     # Family Tools
@@ -145,7 +145,7 @@ def register_api_mapping_routes(api):
     level_name="Level 1",
     properties={"Mark": "W1"}
 )""",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/place_family/
+                        "http_example": """POST http://localhost:48884/revit_mcp/place_family/
 Content-Type: application/json
 
 {
@@ -172,7 +172,7 @@ Content-Type: application/json
                         "description": "Get a list of available family types",
                         "request_body": None,
                         "mcp_example": "await list_families(contains='Wall', limit=50)",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/families/?contains=Wall&limit=50",
+                        "http_example": "GET http://localhost:48884/revit_mcp/families/?contains=Wall&limit=50",
                         "query_parameters": {
                             "contains": "Filter families containing this text",
                             "limit": "Maximum number of results"
@@ -186,7 +186,7 @@ Content-Type: application/json
                         "description": "Get a list of all family categories",
                         "request_body": None,
                         "mcp_example": "await list_family_categories()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/family_categories/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/family_categories/"
                     },
                     
                     "list_levels": {
@@ -196,7 +196,7 @@ Content-Type: application/json
                         "description": "Get a list of all levels in the model",
                         "request_body": None,
                         "mcp_example": "await list_levels()",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/levels/"
+                        "http_example": "GET http://localhost:48884/revit_mcp/levels/"
                     },
                     
                     # Floor Management Tools
@@ -216,7 +216,7 @@ Content-Type: application/json
     height_offset=100.0,
     thickness=200.0
 )""",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/create_or_edit_floor/
+                        "http_example": """POST http://localhost:48884/revit_mcp/create_or_edit_floor/
 Content-Type: application/json
 
 {
@@ -254,7 +254,7 @@ Content-Type: application/json
     height_offset=100.0,
     thickness=200.0
 )""",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/create_rectangular_floor/
+                        "http_example": """POST http://localhost:48884/revit_mcp/create_rectangular_floor/
 Content-Type: application/json
 
 {
@@ -289,7 +289,7 @@ Content-Type: application/json
     parameter_name="Mark",
     use_gradient=False
 )""",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/color_splash/
+                        "http_example": """POST http://localhost:48884/revit_mcp/color_splash/
 Content-Type: application/json
 
 {
@@ -311,7 +311,7 @@ Content-Type: application/json
                         "http_url": "{}/revit_mcp/clear_colors/".format(base_url),
                         "description": "Clear color overrides for elements in a category",
                         "mcp_example": "await clear_colors(category_name='Walls')",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/clear_colors/
+                        "http_example": """POST http://localhost:48884/revit_mcp/clear_colors/
 Content-Type: application/json
 
 {
@@ -328,7 +328,7 @@ Content-Type: application/json
                         "http_url": "{}/revit_mcp/category_parameters/".format(base_url),
                         "description": "Get available parameters for elements in a category",
                         "mcp_example": "await list_category_parameters(category_name='Walls')",
-                        "http_example": "GET http://127.0.0.1:8080/revit_mcp/category_parameters/?category_name=Walls",
+                        "http_example": "GET http://localhost:48884/revit_mcp/category_parameters/?category_name=Walls",
                         "query_parameters": {
                             "category_name": "Name of the category to check parameters for"
                         }
@@ -344,7 +344,7 @@ Content-Type: application/json
     code='print("Hello from Revit!")',
     description="Test code execution"
 )""",
-                        "http_example": """POST http://127.0.0.1:8080/revit_mcp/execute_code/
+                        "http_example": """POST http://localhost:48884/revit_mcp/execute_code/
 Content-Type: application/json
 
 {
@@ -367,7 +367,7 @@ Content-Type: application/json
                                 "step": 1,
                                 "description": "Get selected floor details from Revit",
                                 "mcp": "await get_floor_details()",
-                                "http": "GET http://127.0.0.1:8080/revit_mcp/floor_details/"
+                                "http": "GET http://localhost:48884/revit_mcp/floor_details/"
                             },
                             {
                                 "step": 2,
@@ -389,19 +389,19 @@ Content-Type: application/json
                                 "step": 1,
                                 "description": "Get model information",
                                 "mcp": "await get_revit_model_info()",
-                                "http": "GET http://127.0.0.1:8080/revit_mcp/model_info/"
+                                "http": "GET http://localhost:48884/revit_mcp/model_info/"
                             },
                             {
                                 "step": 2,
                                 "description": "List available parameters for walls",
                                 "mcp": "await list_category_parameters(category_name='Walls')",
-                                "http": "GET http://127.0.0.1:8080/revit_mcp/category_parameters/?category_name=Walls"
+                                "http": "GET http://localhost:48884/revit_mcp/category_parameters/?category_name=Walls"
                             },
                             {
                                 "step": 3,
                                 "description": "Color walls by type",
                                 "mcp": "await color_splash(category_name='Walls', parameter_name='Type Name')",
-                                "http": """POST http://127.0.0.1:8080/revit_mcp/color_splash/
+                                "http": """POST http://localhost:48884/revit_mcp/color_splash/
 {
     "category_name": "Walls",
     "parameter_name": "Type Name"
@@ -424,7 +424,7 @@ import requests
 import json
 
 # Example: Get floor details
-response = requests.get("http://127.0.0.1:8080/revit_mcp/floor_details/")
+response = requests.get("http://localhost:48884/revit_mcp/floor_details/")
 floor_data = response.json()
 
 # Example: Create a floor
@@ -440,7 +440,7 @@ floor_config = {
 }
 
 response = requests.post(
-    "http://127.0.0.1:8080/revit_mcp/create_or_edit_floor/",
+    "http://localhost:48884/revit_mcp/create_or_edit_floor/",
     headers={"Content-Type": "application/json"},
     data=json.dumps(floor_config)
 )

@@ -4,7 +4,7 @@ Floor Management Module for Revit MCP
 Handles floor creation and editing functionality
 """
 
-from .utils import get_element_name
+from .utils import get_element_name, RoomWarningSwallower
 from pyrevit import routes, revit, DB
 import json
 import traceback
@@ -528,18 +528,25 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
         if not sketch:
             raise Exception("Cannot edit floor - sketch not found")
         
-        # Create new profile using CurveArrArray
-        # Create CurveArray for the boundary curves
-        curve_array = DB.CurveArray()
-        for curve in curves:
-            curve_array.Append(curve)
         
-        # Create CurveArrArray and add the curve array
-        curve_arr_array = DB.CurveArrArray()
-        curve_arr_array.Append(curve_array)
+        # Use SketchEditScope to edit the floor
+        sketch_scope = DB.SketchEditScope(doc, "Edit Floor via MCP")
+        sketch_scope.Start(sketch_id)
+        sketch = doc.GetElement(sketch_id)
+        print(sketch.Profile)
+        plane = sketch.SketchPlane
+        swallower = RoomWarningSwallower.RoomWarningSwallower()
+        with DB.Transaction(doc, "Update Floor Bountries") as t:
+            t.Start()
+            for elementId in sketch.GetAllElements():
+                doc.Delete(elementId)
+            # Create a ModelLine element using the created geometry line and sketch plane
+            for curve in curves:
+                doc.Create.NewModelCurve(curve, plane)
         
-        # Replace the sketch profile
-        sketch.Profile = curve_arr_array
+            t.Commit()
+        # Commit the sketch changes
+        sketch_scope.Commit(swallower)
         
         # Update level if different
         if floor.LevelId.IntegerValue != level.Id.IntegerValue:
@@ -558,8 +565,8 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
             floor.FloorType = floor_type
         
         # Update thickness if specified
-        #if thickness:
-            #_set_floor_thickness(floor, thickness)
+        if thickness:
+            _set_floor_thickness(floor, thickness)
         
         return floor
         
