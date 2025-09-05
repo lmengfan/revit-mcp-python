@@ -45,6 +45,26 @@ def register_routes():
 
         register_floor_management_routes(api)
 
+        from revit_mcp.grid_management import register_grid_management_routes
+
+        register_grid_management_routes(api)
+
+        from revit_mcp.column_management import register_column_management_routes
+
+        register_column_management_routes(api)
+
+        from revit_mcp.beam_management import register_beam_management_routes
+
+        register_beam_management_routes(api)
+        
+        from revit_mcp.wall_management import register_wall_management_routes
+
+        register_wall_management_routes(api)
+        
+        from revit_mcp.pipe_management import register_pipe_management_routes
+
+        register_pipe_management_routes(api)
+        
         from revit_mcp.api_mapping import register_api_mapping_routes
 
         register_api_mapping_routes(api)

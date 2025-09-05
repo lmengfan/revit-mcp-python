@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Status and model information tools"""
 
+from math import nextafter
 from mcp.server.fastmcp import Context
 from .utils import format_response
 
@@ -23,4 +24,26 @@ def register_status_tools(mcp, revit_get):
     @mcp.tool()
     async def get_http_base_url(ctx: Context) -> str:
         """Get the HTTP base URL for the Revit MCP server"""
-        return "http://localhost:48884"
+        try:  
+            base_url = "http://localhost:48884"
+            host = "localhost"
+            port = 48884
+            
+            return {
+                "status": "success",
+                "message": "HTTP base URL retrieved successfully",
+                "data": {
+                    "base_url": base_url,
+                    "host": host,
+                    "port": port,
+                    "protocol": "http",
+                    "usage_note": "Use this base URL to construct HTTP requests to the Tekla API endpoints",
+                }
+            }
+        
+        except Exception as e:
+            return {
+                "status": "error", 
+                "message": f"Failed to get HTTP base URL: {str(e)}",
+                "data": None
+            }

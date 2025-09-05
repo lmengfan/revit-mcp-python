@@ -187,36 +187,33 @@ def register_floor_management_routes(api):
                     status=400,
                 )
             try:
-                # Start transaction
-                transaction_name = "Edit Floor via MCP" if existing_floor else "Create Floor via MCP"
-                t = DB.Transaction(doc, transaction_name)
-                t.Start()
                 new_floor = None
                 
                 if existing_floor:
-                    # Edit existing floor
+                    # Edit existing floor using the correct pattern
                     new_floor = _edit_existing_floor(
                         doc, existing_floor, revit_curves, target_level, 
                         height_offset, target_floor_type, thickness, properties
                     )
                 else:
                     # Create new floor
-                    new_floor = _create_new_floor(
-                        doc, revit_curves, target_level, height_offset, 
-                        target_floor_type, thickness, properties
-                    )
+                    with DB.Transaction(doc, "Create Floor via MCP") as t:
+                        t.Start()
+                        new_floor = _create_new_floor(
+                            doc, revit_curves, target_level, height_offset, 
+                            target_floor_type, thickness, properties
+                        )
+                        if not new_floor:
+                            t.RollBack()
+                            return routes.make_response(
+                                data={"error": "Failed to create floor"}, status=500
+                            )
+                        t.Commit()
 
                 if not new_floor:
-                    t.RollBack()
                     return routes.make_response(
                         data={"error": "Failed to create/edit floor"}, status=500
                     )
-
-                # Set additional properties
-                #if properties:
-                    #_set_floor_properties(new_floor, properties)
-
-                t.Commit()
                 
                 operation = "edited" if existing_floor else "created"
                 floor_name = get_element_name(new_floor)
@@ -234,7 +231,6 @@ def register_floor_management_routes(api):
                 )
 
             except Exception as creation_error:
-                t.RollBack()
                 logger.error("Floor operation failed: {}".format(str(creation_error)))
                 return routes.make_response(
                     data={"error": "Floor operation failed: {}".format(str(creation_error))},
@@ -528,45 +524,66 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
         if not sketch:
             raise Exception("Cannot edit floor - sketch not found")
         
-        
-        # Use SketchEditScope to edit the floor
+        # Use SketchEditScope to edit the floor (outside of any transaction)
         sketch_scope = DB.SketchEditScope(doc, "Edit Floor via MCP")
         sketch_scope.Start(sketch_id)
         sketch = doc.GetElement(sketch_id)
-        print(sketch.Profile)
         plane = sketch.SketchPlane
-        swallower = RoomWarningSwallower.RoomWarningSwallower()
-        with DB.Transaction(doc, "Update Floor Bountries") as t:
+        origin = plane.GetPlane().Origin
+        height = origin.Z
+        swallower = RoomWarningSwallower()
+        
+        # Update the floor boundary curves within a transaction
+        with DB.Transaction(doc, "Update Floor Boundaries") as t:
             t.Start()
+            # Delete existing sketch elements
             for elementId in sketch.GetAllElements():
                 doc.Delete(elementId)
-            # Create a ModelLine element using the created geometry line and sketch plane
+            # Create new model curves for the boundary - project curves onto the sketch plane height
             for curve in curves:
-                doc.Create.NewModelCurve(curve, plane)
-        
+                # Project the curve onto the sketch plane height
+                projected_curve = _project_curve_to_plane_height(curve, height)
+                doc.Create.NewModelCurve(projected_curve, plane)
             t.Commit()
+        
         # Commit the sketch changes
         sketch_scope.Commit(swallower)
         
+        # Update other properties in separate transactions (outside of sketch scope)
         # Update level if different
         if floor.LevelId.IntegerValue != level.Id.IntegerValue:
-            level_param = floor.LookupParameter("Level")
-            if level_param and not level_param.IsReadOnly:
-                level_param.Set(level.Id)
+            with DB.Transaction(doc, "Update Floor Level") as t:
+                t.Start()
+                level_param = floor.LookupParameter("Level")
+                if level_param and not level_param.IsReadOnly:
+                    level_param.Set(level.Id)
+                t.Commit()
         
-        # Update height offset
-        height_offset_ft = float(height_offset) / 304.8
-        height_param = floor.LookupParameter("Height Offset From Level")
-        if height_param and not height_param.IsReadOnly:
-            height_param.Set(height_offset_ft)
-        
-        # Update floor type if specified
-        if floor_type and floor.FloorType.Id.IntegerValue != floor_type.Id.IntegerValue:
-            floor.FloorType = floor_type
-        
-        # Update thickness if specified
-        if thickness:
-            _set_floor_thickness(floor, thickness)
+        # Update height offset and other properties
+        if height_offset != 0 or floor_type or thickness or properties:
+            with DB.Transaction(doc, "Update Floor Properties") as t:
+                t.Start()
+                
+                # Update height offset
+                if height_offset != 0:
+                    height_offset_ft = float(height_offset) / 304.8
+                    height_param = floor.LookupParameter("Height Offset From Level")
+                    if height_param and not height_param.IsReadOnly:
+                        height_param.Set(height_offset_ft)
+                
+                # Update floor type if specified
+                if floor_type and floor.FloorType.Id.IntegerValue != floor_type.Id.IntegerValue:
+                    floor.FloorType = floor_type
+                
+                # Update thickness if specified
+                if thickness:
+                    _set_floor_thickness(floor, thickness)
+                
+                # Set additional properties
+                if properties:
+                    _set_floor_properties(floor, properties)
+                
+                t.Commit()
         
         return floor
         
@@ -599,6 +616,44 @@ def _set_floor_thickness(floor, thickness_mm):
         
     except Exception as e:
         logger.warning("Could not set floor thickness: {}".format(str(e)))
+
+
+def _project_curve_to_plane_height(curve, plane_height):
+    """Project a curve to a specific plane height (Z coordinate)"""
+    try:
+        if hasattr(curve, 'GetEndPoint'):
+            # Handle Line curves
+            start_point = curve.GetEndPoint(0)
+            end_point = curve.GetEndPoint(1)
+            
+            # Create new points with the plane height
+            new_start = DB.XYZ(start_point.X, start_point.Y, plane_height)
+            new_end = DB.XYZ(end_point.X, end_point.Y, plane_height)
+            
+            return DB.Line.CreateBound(new_start, new_end)
+            
+        elif hasattr(curve, 'Center'):
+            # Handle Arc curves
+            center = curve.Center
+            radius = curve.Radius
+            start_point = curve.GetEndPoint(0)
+            end_point = curve.GetEndPoint(1)
+            
+            # Create new points with the plane height
+            new_center = DB.XYZ(center.X, center.Y, plane_height)
+            new_start = DB.XYZ(start_point.X, start_point.Y, plane_height)
+            new_end = DB.XYZ(end_point.X, end_point.Y, plane_height)
+            
+            return DB.Arc.Create(new_start, new_end, new_center)
+            
+        else:
+            # For other curve types, try to get tessellated points and recreate
+            logger.warning("Unsupported curve type for height projection, using original curve")
+            return curve
+            
+    except Exception as e:
+        logger.warning("Failed to project curve to plane height: {}".format(str(e)))
+        return curve
 
 
 def _set_floor_properties(floor, properties):

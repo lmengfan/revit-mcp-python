@@ -174,3 +174,29 @@ def register_floor_tools(mcp, revit_get, revit_post):
 
         response = await revit_post("/create_rectangular_floor/", data, ctx)
         return format_response(response) 
+        
+    @mcp.tool()
+    async def get_floor_details(ctx: Context = None) -> str:
+        """
+        Get comprehensive information about selected floor elements in Revit
+        
+        Returns detailed information about floor elements including:
+        - Family Name and Type information (e.g., "Generic - 12\"", "Concrete on Metal Deck")
+        - Thickness and material properties with layer-by-layer breakdown
+        - Boundary curves and geometry points with coordinates in mm
+        - Level information (name, ID, elevation) and height offset from level
+        - Level elevation and absolute Z-coordinate positioning
+        - Structural properties and construction details
+        - All relevant parameters (Area, Volume, Perimeter, Structural flags, etc.)
+        - Bounding box dimensions and positioning
+        
+        This tool specifically filters for floor elements from the current selection
+        and provides comprehensive construction and geometric information needed
+        for analysis, documentation, or export to other systems like Tekla.
+        
+        All measurements are converted to metric units (mm for lengths, sq m for areas).
+        """
+        if ctx:
+            ctx.info("Getting detailed information about selected floor elements...")
+        response = await revit_get("/floor_details/", ctx)
+        return format_response(response)

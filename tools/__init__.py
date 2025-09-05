@@ -12,6 +12,13 @@ def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func
     from .colors_tools import register_colors_tools
     from .code_execution_tools import register_code_execution_tools
     from .floor_tools import register_floor_tools
+    from .grid_tools import register_grid_tools
+    from .column_tools import register_column_tools
+    
+    from .beam_tools import register_beam_tools
+    from .wall_tools import register_wall_tools
+    from .pipe_tools import register_pipe_tools
+    
     from .mapping_tools import register_mapping_tools
 
     # Register tools from each module
@@ -24,4 +31,11 @@ def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func
         mcp_server, revit_get_func, revit_post_func, revit_image_func
     )
     register_floor_tools(mcp_server, revit_get_func, revit_post_func)
+    register_grid_tools(mcp_server, revit_get_func, revit_post_func)
+    register_column_tools(mcp_server, revit_get_func, revit_post_func)
+    
+    register_beam_tools(mcp_server, revit_get_func, revit_post_func)
+    register_wall_tools(mcp_server, revit_get_func, revit_post_func)
+    register_pipe_tools(mcp_server, revit_get_func, revit_post_func)
+    
     register_mapping_tools(mcp_server, revit_get_func)

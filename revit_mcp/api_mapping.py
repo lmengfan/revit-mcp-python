@@ -16,7 +16,11 @@ def register_api_mapping_routes(api):
 
     @api.route("/mcp_to_http_mapping/", methods=["GET"])
     @api.route("/mcp_to_http_mapping", methods=["GET"])
-    def get_mcp_to_http_mapping():
+    @api.route("/revit_mcp_to_http_mapping/", methods=["GET"])
+    @api.route("/revit_mcp_to_http_mapping", methods=["GET"])
+    @api.route("/get_revit_mcp_to_http_mapping/", methods=["GET"])
+    @api.route("/get_revit_mcp_to_http_mapping", methods=["GET"])
+    def get_revit_mcp_to_http_mapping():
         """
         Provides a comprehensive mapping between MCP tools and their corresponding HTTP API routes.
         

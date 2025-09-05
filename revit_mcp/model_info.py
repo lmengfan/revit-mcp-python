@@ -570,6 +570,8 @@ def register_model_info_routes(api):
 
     @api.route("/floor_details/", methods=["GET"])
     @api.route("/floor_details", methods=["GET"])
+    @api.route("/get_floor_details/", methods=["GET"])
+    @api.route("/get_floor_details", methods=["GET"])
     def get_floor_details():
         """
         Get comprehensive information about selected floor elements in Revit
