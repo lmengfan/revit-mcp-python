@@ -285,7 +285,7 @@ def register_beam_management_routes(api):
                 
                 # Verify it's a structural framing element
                 if not (hasattr(element, 'Category') and element.Category and 
-                    element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_StructuralFraming)):
+                    element.Category.Id.Value == int(DB.BuiltInCategory.OST_StructuralFraming)):
                     return routes.make_response(
                         data={"error": "Element {} is not a structural framing element".format(element_id)}, status=400
                     )
@@ -365,11 +365,11 @@ def register_beam_management_routes(api):
                     
                     # Check if element is a structural framing element (beam)
                     if not (hasattr(element, 'Category') and element.Category and 
-                        element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_StructuralFraming)):
+                        element.Category.Id.Value == int(DB.BuiltInCategory.OST_StructuralFraming)):
                         continue
                     
                     beam_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": get_element_name(element)
                     }
                     
@@ -379,7 +379,7 @@ def register_beam_management_routes(api):
                         if symbol:
                             beam_info["family_name"] = get_element_name(symbol.Family)
                             beam_info["type_name"] = get_element_name(symbol)
-                            beam_info["type_id"] = str(symbol.Id.IntegerValue)
+                            beam_info["type_id"] = str(symbol.Id.Value)
                             
                             # Get detailed type properties
                             type_properties = _extract_beam_type_properties(symbol)
@@ -461,7 +461,7 @@ def register_beam_management_routes(api):
                             if level:
                                 beam_info["level"] = {
                                     "name": get_element_name(level),
-                                    "id": str(level_id.IntegerValue),
+                                    "id": str(level_id.Value),
                                     "elevation": round(level.Elevation * 304.8, 2)
                                 }
                         
@@ -490,12 +490,12 @@ def register_beam_management_routes(api):
                         material_param = element.get_Parameter(DB.BuiltInParameter.STRUCTURAL_MATERIAL_PARAM)
                         if material_param and material_param.HasValue:
                             material_id = material_param.AsElementId()
-                            if material_id and material_id.IntegerValue != -1:
+                            if material_id and material_id.Value != -1:
                                 material = doc.GetElement(material_id)
                                 if material:
                                     structural_props["material"] = {
                                         "name": get_element_name(material),
-                                        "id": str(material_id.IntegerValue)
+                                        "id": str(material_id.Value)
                                     }
                         
                         beam_info["structural_properties"] = structural_props
@@ -528,9 +528,9 @@ def register_beam_management_routes(api):
                                         value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:
@@ -756,7 +756,7 @@ def _create_new_beam(doc, beam_curve, level, family_name, type_name, structural_
         return {
             "success": True,
             "message": "Successfully created beam '{}'".format(get_element_name(beam)),
-            "element_id": str(beam.Id.IntegerValue),
+            "element_id": str(beam.Id.Value),
             "element_type": "beam",
             "family_name": get_element_name(symbol.Family),
             "type_name": get_element_name(symbol),
@@ -781,7 +781,7 @@ def _edit_existing_beam(doc, element_id, beam_curve, level, family_name, type_na
         
         # Verify it's a structural framing element
         if not (hasattr(beam, 'Category') and beam.Category and 
-               beam.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_StructuralFraming)):
+               beam.Category.Id.Value == int(DB.BuiltInCategory.OST_StructuralFraming)):
             return {"error": "Element is not a structural framing element"}
         
         # Update beam curve (location)
@@ -816,7 +816,7 @@ def _edit_existing_beam(doc, element_id, beam_curve, level, family_name, type_na
         return {
             "success": True,
             "message": "Successfully modified beam '{}'".format(get_element_name(beam)),
-            "element_id": str(beam.Id.IntegerValue),
+            "element_id": str(beam.Id.Value),
             "element_type": "beam",
             "family_name": get_element_name(beam.Symbol.Family),
             "type_name": get_element_name(beam.Symbol),
@@ -953,7 +953,7 @@ def _extract_beam_config(beam):
     """Extract beam configuration from an existing beam element"""
     try:
         config = {
-            "element_id": str(beam.Id.IntegerValue),
+            "element_id": str(beam.Id.Value),
             "name": get_element_name(beam)
         }
         
@@ -961,7 +961,7 @@ def _extract_beam_config(beam):
         if hasattr(beam, 'Symbol') and beam.Symbol:
             config["family_name"] = get_element_name(beam.Symbol.Family)
             config["type_name"] = get_element_name(beam.Symbol)
-            config["type_id"] = str(beam.Symbol.Id.IntegerValue)
+            config["type_id"] = str(beam.Symbol.Id.Value)
         
         # Location information
         if hasattr(beam.Location, 'Curve') and beam.Location.Curve:
@@ -1098,7 +1098,7 @@ def _extract_beam_type_properties(symbol):
                 if material:
                     materials["structural_material"] = {
                         "name": get_element_name(material),
-                        "id": str(symbol.StructuralMaterialId.IntegerValue)
+                        "id": str(symbol.StructuralMaterialId.Value)
                     }
                     
                     # Get material properties
@@ -1116,12 +1116,12 @@ def _extract_beam_type_properties(symbol):
                 if param and param.HasValue:
                     if param.StorageType == DB.StorageType.ElementId:
                         elem_id = param.AsElementId()
-                        if elem_id and elem_id.IntegerValue != -1:
+                        if elem_id and elem_id.Value != -1:
                             material = symbol.Document.GetElement(elem_id)
                             if material:
                                 materials[param_name.lower().replace(":", "").replace(" ", "_")] = {
                                     "name": get_element_name(material),
-                                    "id": str(elem_id.IntegerValue)
+                                    "id": str(elem_id.Value)
                                 }
                     elif param.StorageType == DB.StorageType.String:
                         materials[param_name.lower().replace(":", "").replace(" ", "_")] = param.AsString()
@@ -1162,9 +1162,9 @@ def _extract_beam_type_properties(symbol):
                         structural[param_name.lower().replace("'", "").replace(" ", "_")] = param.AsInteger()
                     elif param.StorageType == DB.StorageType.ElementId:
                         elem_id = param.AsElementId()
-                        if elem_id and elem_id.IntegerValue != -1:
+                        if elem_id and elem_id.Value != -1:
                             elem = symbol.Document.GetElement(elem_id)
-                            structural[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.IntegerValue)
+                            structural[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.Value)
             except:
                 continue
         
@@ -1251,9 +1251,9 @@ def _extract_beam_type_properties(symbol):
                             additional[param_name.lower().replace(" ", "_")] = param.AsInteger()
                         elif param.StorageType == DB.StorageType.ElementId:
                             elem_id = param.AsElementId()
-                            if elem_id and elem_id.IntegerValue != -1:
+                            if elem_id and elem_id.Value != -1:
                                 elem = symbol.Document.GetElement(elem_id)
-                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.IntegerValue)
+                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.Value)
                 except:
                     continue
         except:

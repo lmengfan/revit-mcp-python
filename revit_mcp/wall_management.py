@@ -348,7 +348,7 @@ def register_wall_management_routes(api):
                 
                 # Verify it's a wall element
                 if not (hasattr(element, 'Category') and element.Category and 
-                    element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Walls)):
+                    element.Category.Id.Value == int(DB.BuiltInCategory.OST_Walls)):
                     return routes.make_response(
                         data={"error": "Element {} is not a wall".format(element_id)}, status=400
                     )
@@ -428,11 +428,11 @@ def register_wall_management_routes(api):
                     
                     # Check if element is a wall
                     if not (hasattr(element, 'Category') and element.Category and 
-                        element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Walls)):
+                        element.Category.Id.Value == int(DB.BuiltInCategory.OST_Walls)):
                         continue
                     
                     wall_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": get_element_name(element)
                     }
                     
@@ -441,7 +441,7 @@ def register_wall_management_routes(api):
                         wall_type = element.WallType
                         if wall_type:
                             wall_info["wall_type_name"] = get_element_name(wall_type)
-                            wall_info["wall_type_id"] = str(wall_type.Id.IntegerValue)
+                            wall_info["wall_type_id"] = str(wall_type.Id.Value)
                             
                             # Get detailed type properties
                             type_properties = _extract_wall_type_properties(wall_type)
@@ -513,7 +513,7 @@ def register_wall_management_routes(api):
                             if level:
                                 wall_info["base_level"] = {
                                     "name": get_element_name(level),
-                                    "id": str(level_id.IntegerValue),
+                                    "id": str(level_id.Value),
                                     "elevation": round(level.Elevation * 304.8, 2)
                                 }
                         
@@ -521,12 +521,12 @@ def register_wall_management_routes(api):
                         top_param = element.get_Parameter(DB.BuiltInParameter.WALL_HEIGHT_TYPE)
                         if top_param and top_param.HasValue:
                             top_id = top_param.AsElementId()
-                            if top_id.IntegerValue != -1:
+                            if top_id.Value != -1:
                                 top_level = doc.GetElement(top_id)
                                 if top_level:
                                     wall_info["top_constraint"] = {
                                         "name": get_element_name(top_level),
-                                        "id": str(top_id.IntegerValue),
+                                        "id": str(top_id.Value),
                                         "elevation": round(top_level.Elevation * 304.8, 2)
                                     }
                         
@@ -601,9 +601,9 @@ def register_wall_management_routes(api):
                                         value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:
@@ -779,7 +779,7 @@ def _create_new_wall(doc, wall_curve, level, wall_type_name, height, height_offs
         return {
             "success": True,
             "message": "Successfully created wall '{}'".format(get_element_name(wall)),
-            "element_id": str(wall.Id.IntegerValue),
+            "element_id": str(wall.Id.Value),
             "element_type": "wall",
             "wall_type_name": get_element_name(wall_type),
             "length": round(wall_curve.Length * 304.8, 2)
@@ -803,7 +803,7 @@ def _edit_existing_wall(doc, element_id, wall_curve, level, wall_type_name, heig
         
         # Verify it's a wall
         if not (hasattr(wall, 'Category') and wall.Category and 
-               wall.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Walls)):
+               wall.Category.Id.Value == int(DB.BuiltInCategory.OST_Walls)):
             return {"error": "Element is not a wall"}
         
         # Update wall curve (location)
@@ -853,7 +853,7 @@ def _edit_existing_wall(doc, element_id, wall_curve, level, wall_type_name, heig
         return {
             "success": True,
             "message": "Successfully modified wall '{}'".format(get_element_name(wall)),
-            "element_id": str(wall.Id.IntegerValue),
+            "element_id": str(wall.Id.Value),
             "element_type": "wall",
             "wall_type_name": get_element_name(wall.WallType),
             "length": round(wall_curve.Length * 304.8, 2)
@@ -1082,14 +1082,14 @@ def _extract_wall_config(wall):
     """Extract wall configuration from an existing wall element"""
     try:
         config = {
-            "element_id": str(wall.Id.IntegerValue),
+            "element_id": str(wall.Id.Value),
             "name": get_element_name(wall)
         }
         
         # Wall type information
         if hasattr(wall, 'WallType') and wall.WallType:
             config["wall_type_name"] = get_element_name(wall.WallType)
-            config["wall_type_id"] = str(wall.WallType.Id.IntegerValue)
+            config["wall_type_id"] = str(wall.WallType.Id.Value)
         
         # Location information
         if hasattr(wall.Location, 'Curve') and wall.Location.Curve:
@@ -1191,12 +1191,12 @@ def _extract_wall_type_properties(wall_type):
                     # Get layer material
                     try:
                         material_id = layer.MaterialId
-                        if material_id and material_id.IntegerValue != -1:
+                        if material_id and material_id.Value != -1:
                             material = wall_type.Document.GetElement(material_id)
                             if material:
                                 layer_info["material"] = {
                                     "name": get_element_name(material),
-                                    "id": str(material_id.IntegerValue)
+                                    "id": str(material_id.Value)
                                 }
                                 
                                 # Get material properties
@@ -1302,9 +1302,9 @@ def _extract_wall_type_properties(wall_type):
                             additional[param_name.lower().replace(" ", "_")] = param.AsInteger()
                         elif param.StorageType == DB.StorageType.ElementId:
                             elem_id = param.AsElementId()
-                            if elem_id and elem_id.IntegerValue != -1:
+                            if elem_id and elem_id.Value != -1:
                                 elem = wall_type.Document.GetElement(elem_id)
-                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.IntegerValue)
+                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.Value)
                 except:
                     continue
         except:

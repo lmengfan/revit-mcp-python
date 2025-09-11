@@ -166,7 +166,7 @@ def register_floor_management_routes(api):
                     elem_id = DB.ElementId(int(element_id))
                     existing_floor = doc.GetElement(elem_id)
                     if not existing_floor or not hasattr(existing_floor, 'Category') or \
-                       existing_floor.Category.Id.IntegerValue != int(DB.BuiltInCategory.OST_Floors):
+                       existing_floor.Category.Id.Value != int(DB.BuiltInCategory.OST_Floors):
                         return routes.make_response(
                             data={"error": "Element with ID {} is not a floor".format(element_id)},
                             status=404,
@@ -221,7 +221,7 @@ def register_floor_management_routes(api):
                 return routes.make_response(
                     data={
                         "message": "Successfully {} floor '{}'".format(operation, floor_name),
-                        "floor_id": str(new_floor.Id.IntegerValue),
+                        "floor_id": str(new_floor.Id.Value),
                         "floor_name": floor_name,
                         "level_name": level_name,
                         "height_offset": height_offset,
@@ -480,7 +480,7 @@ def _create_new_floor(doc, curves, level, height_offset, floor_type, thickness, 
         else:
             # Use default floor type
             default_floor_type = doc.GetDefaultElementTypeId(DB.ElementTypeGroup.FloorType)
-            if default_floor_type and default_floor_type.IntegerValue != DB.ElementId.InvalidElementId.IntegerValue:
+            if default_floor_type and default_floor_type.Value != DB.ElementId.InvalidElementId.Value:
                 new_floor = DB.Floor.Create(doc, curve_loops, default_floor_type, level.Id)
             else:
                 # Find any available floor type
@@ -517,7 +517,7 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
     try:
         # Get the floor's sketch using SketchId
         sketch_id = floor.SketchId
-        if sketch_id.IntegerValue == DB.ElementId.InvalidElementId.IntegerValue:
+        if sketch_id.Value == DB.ElementId.InvalidElementId.Value:
             raise Exception("Cannot edit floor - no sketch ID available")
         
         sketch = doc.GetElement(sketch_id)
@@ -551,7 +551,7 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
         
         # Update other properties in separate transactions (outside of sketch scope)
         # Update level if different
-        if floor.LevelId.IntegerValue != level.Id.IntegerValue:
+        if floor.LevelId.Value != level.Id.Value:
             with DB.Transaction(doc, "Update Floor Level") as t:
                 t.Start()
                 level_param = floor.LookupParameter("Level")
@@ -572,7 +572,7 @@ def _edit_existing_floor(doc, floor, curves, level, height_offset, floor_type, t
                         height_param.Set(height_offset_ft)
                 
                 # Update floor type if specified
-                if floor_type and floor.FloorType.Id.IntegerValue != floor_type.Id.IntegerValue:
+                if floor_type and floor.FloorType.Id.Value != floor_type.Id.Value:
                     floor.FloorType = floor_type
                 
                 # Update thickness if specified

@@ -403,7 +403,7 @@ def register_model_info_routes(api):
                     
                     # Basic element information
                     element_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": normalize_string(get_element_name(element)),
                         "type": normalize_string(element.GetType().Name)
                     }
@@ -412,7 +412,7 @@ def register_model_info_routes(api):
                     try:
                         if hasattr(element, 'Category') and element.Category:
                             category_name = normalize_string(element.Category.Name)
-                            category_id = str(element.Category.Id.IntegerValue)
+                            category_id = str(element.Category.Id.Value)
                             element_info["category"] = category_name
                             element_info["category_id"] = category_id
                             
@@ -434,7 +434,7 @@ def register_model_info_routes(api):
                             level = doc.GetElement(element.LevelId)
                             if level:
                                 element_info["level"] = normalize_string(get_element_name(level))
-                                element_info["level_id"] = str(element.LevelId.IntegerValue)
+                                element_info["level_id"] = str(element.LevelId.Value)
                             else:
                                 element_info["level"] = "Unknown"
                                 element_info["level_id"] = "Unknown"
@@ -446,7 +446,7 @@ def register_model_info_routes(api):
                                 level = doc.GetElement(level_id)
                                 if level:
                                     element_info["level"] = normalize_string(get_element_name(level))
-                                    element_info["level_id"] = str(level_id.IntegerValue)
+                                    element_info["level_id"] = str(level_id.Value)
                                 else:
                                     element_info["level"] = "None"
                                     element_info["level_id"] = "None"
@@ -512,9 +512,9 @@ def register_model_info_routes(api):
                                     value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = normalize_string(get_element_name(ref_elem)) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = normalize_string(get_element_name(ref_elem)) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:
@@ -617,11 +617,11 @@ def register_model_info_routes(api):
                     
                     # Check if element is a floor
                     if not (hasattr(element, 'Category') and element.Category and 
-                           element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Floors)):
+                           element.Category.Id.Value == int(DB.BuiltInCategory.OST_Floors)):
                         continue
                     
                     floor_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": normalize_string(get_element_name(element))
                     }
                     
@@ -631,7 +631,7 @@ def register_model_info_routes(api):
                             floor_type = element.FloorType
                             floor_info["family_name"] = normalize_string(floor_type.Family.Name) if floor_type.Family else "Unknown"
                             floor_info["type_name"] = normalize_string(floor_type.Name)
-                            floor_info["type_id"] = str(floor_type.Id.IntegerValue)
+                            floor_info["type_id"] = str(floor_type.Id.Value)
                         else:
                             floor_info["family_name"] = "Unknown"
                             floor_info["type_name"] = "Unknown"
@@ -647,7 +647,7 @@ def register_model_info_routes(api):
                             level = doc.GetElement(element.LevelId)
                             if level:
                                 floor_info["level_name"] = normalize_string(get_element_name(level))
-                                floor_info["level_id"] = str(element.LevelId.IntegerValue)
+                                floor_info["level_id"] = str(element.LevelId.Value)
                                 floor_info["level_elevation"] = round(level.Elevation * 304.8, 2)  # Convert to mm
                             else:
                                 floor_info["level_name"] = "Unknown"
@@ -692,7 +692,7 @@ def register_model_info_routes(api):
                                     # Get material
                                     material_id = layer.MaterialId
                                     material_name = "Unknown"
-                                    if material_id and material_id.IntegerValue != -1:
+                                    if material_id and material_id.Value != -1:
                                         material = doc.GetElement(material_id)
                                         if material:
                                             material_name = normalize_string(material.Name)
@@ -834,9 +834,9 @@ def register_model_info_routes(api):
                                         value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = normalize_string(get_element_name(ref_elem)) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = normalize_string(get_element_name(ref_elem)) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:

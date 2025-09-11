@@ -343,7 +343,7 @@ def register_pipe_management_routes(api):
                         return routes.make_response({
                             "status": "success",
                             "message": "Found existing segment '{}' with matching size".format(name),
-                            "segment_id": segment.Id.IntegerValue,
+                            "segment_id": segment.Id.Value,
                             "segment_name": get_element_name(segment),
                             "element_type": "segment",
                             "created": False,
@@ -367,7 +367,7 @@ def register_pipe_management_routes(api):
                     return routes.make_response({
                         "status": "success",
                         "message": "Created new segment '{}'".format(name),
-                        "segment_id": segment.Id.IntegerValue,
+                        "segment_id": segment.Id.Value,
                         "segment_name": get_element_name(segment),
                         "element_type": "segment",
                         "created": True,
@@ -436,7 +436,7 @@ def register_pipe_management_routes(api):
                         continue
                     
                     segment_info = {
-                        "segment_id": segment.Id.IntegerValue,
+                        "segment_id": segment.Id.Value,
                         "name": segment_name,
                         "roughness": segment.Roughness if hasattr(segment, 'Roughness') else None
                     }
@@ -806,7 +806,7 @@ def _create_new_pipe(doc, start_point, end_point, inner_diameter, outer_diameter
         return {
             "status": "success",
             "message": "Successfully created pipe '{}'".format(pipe_name),
-            "element_id": pipe.Id.IntegerValue,
+            "element_id": pipe.Id.Value,
             "element_type": "pipe"
         }
         
@@ -866,7 +866,7 @@ def _edit_existing_pipe(doc, element_id, start_point, end_point, inner_diameter,
         return {
             "status": "success",
             "message": "Successfully modified pipe '{}'".format(pipe_name),
-            "element_id": pipe.Id.IntegerValue,
+            "element_id": pipe.Id.Value,
             "element_type": "pipe"
         }
         
@@ -914,7 +914,7 @@ def _extract_pipe_configuration(pipe):
     """Extract configuration from an existing pipe"""
     try:
         config = {
-            "element_id": pipe.Id.IntegerValue,
+            "element_id": pipe.Id.Value,
             "name": get_element_name(pipe),
         }
         
@@ -931,7 +931,7 @@ def _extract_pipe_configuration(pipe):
         pipe_type = pipe.Document.GetElement(pipe.GetTypeId())
         if pipe_type:
             config["pipe_type_name"] = get_element_name(pipe_type)
-            config["pipe_type_id"] = str(pipe_type.Id.IntegerValue)
+            config["pipe_type_id"] = str(pipe_type.Id.Value)
             
             # Get diameter
             diameter_param = pipe_type.get_Parameter(DB.BuiltInParameter.RBS_PIPE_DIAMETER_PARAM)
@@ -947,7 +947,7 @@ def _extract_pipe_configuration(pipe):
             system_type = pipe.Document.GetElement(system_param.AsElementId())
             if system_type:
                 config["system_type_name"] = get_element_name(system_type)
-                config["system_type_id"] = str(system_type.Id.IntegerValue)
+                config["system_type_id"] = str(system_type.Id.Value)
         
         # Get level information
         level_param = pipe.get_Parameter(DB.BuiltInParameter.RBS_START_LEVEL_PARAM)
@@ -955,7 +955,7 @@ def _extract_pipe_configuration(pipe):
             level = pipe.Document.GetElement(level_param.AsElementId())
             if level:
                 config["level_name"] = get_element_name(level)
-                config["level_id"] = str(level.Id.IntegerValue)
+                config["level_id"] = str(level.Id.Value)
         
         # Get additional properties
         properties = {}
@@ -976,17 +976,17 @@ def _extract_pipe_configuration(pipe):
         
     except Exception as e:
         logger.error("Error extracting pipe configuration: {}".format(str(e)))
-        return {"element_id": pipe.Id.IntegerValue, "error": str(e)}
+        return {"element_id": pipe.Id.Value, "error": str(e)}
 
 
 def _get_comprehensive_pipe_info(pipe):
     """Get comprehensive information about a pipe element"""
     try:
         pipe_info = {
-            "element_id": pipe.Id.IntegerValue,
+            "element_id": pipe.Id.Value,
             "name": get_element_name(pipe),
             "category": "Pipes",
-            "category_id": pipe.Category.Id.IntegerValue if pipe.Category else None,
+            "category_id": pipe.Category.Id.Value if pipe.Category else None,
         }
         
         # Basic location information
@@ -1021,7 +1021,7 @@ def _get_comprehensive_pipe_info(pipe):
             type_properties = _extract_pipe_type_properties(pipe_type)
             pipe_info.update({
                 "pipe_type_name": get_element_name(pipe_type),
-                "pipe_type_id": str(pipe_type.Id.IntegerValue),
+                "pipe_type_id": str(pipe_type.Id.Value),
                 "type_properties": type_properties
             })
         
@@ -1033,7 +1033,7 @@ def _get_comprehensive_pipe_info(pipe):
                 system_properties = _extract_system_type_properties(system_type)
                 pipe_info.update({
                     "system_type_name": get_element_name(system_type),
-                    "system_type_id": str(system_type.Id.IntegerValue),
+                    "system_type_id": str(system_type.Id.Value),
                     "system_properties": system_properties
                 })
         
@@ -1044,7 +1044,7 @@ def _get_comprehensive_pipe_info(pipe):
             if level:
                 pipe_info["level"] = {
                     "name": get_element_name(level),
-                    "id": str(level.Id.IntegerValue),
+                    "id": str(level.Id.Value),
                     "elevation": level.Elevation * 304.8  # Convert to mm
                 }
         
@@ -1089,7 +1089,7 @@ def _get_comprehensive_pipe_info(pipe):
     except Exception as e:
         logger.error("Error getting comprehensive pipe info: {}".format(str(e)))
         return {
-            "element_id": pipe.Id.IntegerValue,
+            "element_id": pipe.Id.Value,
             "error": str(e),
             "name": get_element_name(pipe) if pipe else "Unknown"
         }
@@ -1121,7 +1121,7 @@ def _extract_pipe_type_properties(pipe_type):
             material = pipe_type.Document.GetElement(material_param.AsElementId())
             if material:
                 properties["material"]["name"] = get_element_name(material)
-                properties["material"]["id"] = str(material.Id.IntegerValue)
+                properties["material"]["id"] = str(material.Id.Value)
         
         # Roughness
         roughness_param = pipe_type.get_Parameter(DB.BuiltInParameter.RBS_PIPE_ROUGHNESS_PARAM)
@@ -1306,7 +1306,7 @@ def _create_new_segment_with_size(doc, name, nominal_diameter, inner_diameter, o
         try:
             # Clear existing sizes and add our new size
             # This is a simplified approach - actual MEPSize creation may be more complex
-            logger.info("Created new segment: {} (ID: {})".format(name, new_segment.Id.IntegerValue))
+            logger.info("Created new segment: {} (ID: {})".format(name, new_segment.Id.Value))
             logger.warning("MEPSize creation may need manual adjustment - segment created with base sizes")
             
             return {
@@ -1371,7 +1371,7 @@ def _create_new_pipe_type_with_segment(doc, pipe_type_name, inner_diameter, oute
         if name_param and not name_param.IsReadOnly:
             name_param.Set(pipe_type_name)
         
-        logger.info("Created new pipe type: {} (ID: {})".format(pipe_type_name, new_pipe_type.Id.IntegerValue))
+        logger.info("Created new pipe type: {} (ID: {})".format(pipe_type_name, new_pipe_type.Id.Value))
         
         # Create a new segment and add it to the routing preferences
         segment_result = _create_new_segment_rule(
@@ -1403,7 +1403,7 @@ def _create_new_segment_rule(doc, pipe_type, inner_diameter, outer_diameter, nom
         
         new_segment = segment_result["segment"]
         logger.info("Created new segment: {} (ID: {})".format(
-            get_element_name(new_segment), new_segment.Id.IntegerValue))
+            get_element_name(new_segment), new_segment.Id.Value))
         
         # Access the RoutingPreferenceManager
         try:
@@ -1419,7 +1419,7 @@ def _create_new_segment_rule(doc, pipe_type, inner_diameter, outer_diameter, nom
             try:
                 # Create a new RoutingPreferenceRule for the segment
                 # The RoutingPreferenceRule constructor typically takes the segment's ElementId
-                routing_rule = DB.RoutingPreferenceRule(new_segment.Id)
+                routing_rule = DB.RoutingPreferenceRule(new_segment.Id, "Custom segment rule")
                 
                 # Add the rule to the RoutingPreferenceManager using AddRule method
                 # AddRule(RoutingPreferenceRuleGroupType, RoutingPreferenceRule)
@@ -1436,7 +1436,7 @@ def _create_new_segment_rule(doc, pipe_type, inner_diameter, outer_diameter, nom
                 try:
                     # Alternative: Try with position parameter
                     # AddRule(RoutingPreferenceRuleGroupType, RoutingPreferenceRule, Int32)
-                    routing_rule = DB.RoutingPreferenceRule(new_segment.Id)
+                    routing_rule = DB.RoutingPreferenceRule(new_segment.Id, "Custom segment rule")
                     routing_pref_manager.AddRule(
                         DB.RoutingPreferenceRuleGroupType.Segments,
                         routing_rule,

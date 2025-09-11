@@ -207,7 +207,7 @@ def get_parameter_value_safe(element, parameter_name):
             elif param.StorageType == DB.StorageType.ElementId:
                 elem_id = param.AsElementId()
                 if elem_id and elem_id != DB.ElementId.InvalidElementId:
-                    value = str(elem_id.IntegerValue)
+                    value = str(elem_id.Value)
                 else:
                     value = "No Value"
             else:
@@ -223,7 +223,7 @@ def get_parameter_value_safe(element, parameter_name):
         logger.debug(
             "Error getting parameter %s from element %s: %s",
             parameter_name,
-            element.Id.IntegerValue,
+            element.Id.Value,
             e,
         )
         return "No Value"
@@ -851,7 +851,7 @@ def color_elements_by_parameter(
                     except Exception as e:
                         logger.warning(
                             "Failed to color element %s: %s",
-                            element.Id.IntegerValue,
+                            element.Id.Value,
                             e,
                         )
 
@@ -968,7 +968,7 @@ def clear_element_colors(doc, category_name):
                 except Exception as e:
                     logger.warning(
                         "Failed to clear colors for element %s: %s",
-                        element.Id.IntegerValue,
+                        element.Id.Value,
                         e,
                     )
 

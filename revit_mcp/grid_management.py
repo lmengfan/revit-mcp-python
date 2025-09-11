@@ -125,7 +125,7 @@ def register_grid_management_routes(api):
                     elem_id = DB.ElementId(int(element_id))
                     existing_grid = doc.GetElement(elem_id)
                     if not existing_grid or not hasattr(existing_grid, 'Category') or \
-                       existing_grid.Category.Id.IntegerValue != int(DB.BuiltInCategory.OST_Grids):
+                       existing_grid.Category.Id.Value != int(DB.BuiltInCategory.OST_Grids):
                         return routes.make_response(
                             data={"error": "Element with ID {} is not a grid".format(element_id)},
                             status=404,
@@ -181,7 +181,7 @@ def register_grid_management_routes(api):
                 return routes.make_response(
                     data={
                         "message": "Successfully {} grid '{}'".format(operation, grid_name_result),
-                        "grid_id": str(new_grid.Id.IntegerValue),
+                        "grid_id": str(new_grid.Id.Value),
                         "grid_name": grid_name_result,
                         "grid_type": grid_type,
                         "operation": operation
@@ -249,7 +249,7 @@ def register_grid_management_routes(api):
                 elem_id = DB.ElementId(int(element_id))
                 grid = doc.GetElement(elem_id)
                 if not grid or not hasattr(grid, 'Category') or \
-                   grid.Category.Id.IntegerValue != int(DB.BuiltInCategory.OST_Grids):
+                   grid.Category.Id.Value != int(DB.BuiltInCategory.OST_Grids):
                     return routes.make_response(
                         data={"error": "Element with ID {} is not a grid".format(element_id)},
                         status=404,
@@ -319,7 +319,7 @@ def register_grid_management_routes(api):
                         elem_id = DB.ElementId(int(grid_id))
                         grid = doc.GetElement(elem_id)
                         if grid and hasattr(grid, 'Category') and \
-                           grid.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Grids):
+                           grid.Category.Id.Value == int(DB.BuiltInCategory.OST_Grids):
                             grids.append(grid)
                     except:
                         continue
@@ -424,11 +424,11 @@ def register_grid_management_routes(api):
                     
                     # Check if element is a grid
                     if not (hasattr(element, 'Category') and element.Category and 
-                           element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Grids)):
+                           element.Category.Id.Value == int(DB.BuiltInCategory.OST_Grids)):
                         continue
                     
                     grid_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": get_element_name(element)
                     }
                     
@@ -579,9 +579,9 @@ def register_grid_management_routes(api):
                                     value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:
@@ -650,7 +650,7 @@ def register_grid_management_routes(api):
                     for elem_id in selected_ids:
                         element = doc.GetElement(elem_id)
                         if (element and hasattr(element, 'Category') and element.Category and 
-                            element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_Grids)):
+                            element.Category.Id.Value == int(DB.BuiltInCategory.OST_Grids)):
                             selected_grids.append(element)
                     
                     # Find intersections between selected grids
@@ -853,7 +853,7 @@ def _extract_grid_config(grid):
     """Extract configuration from an existing grid"""
     try:
         config = {
-            "element_id": grid.Id.IntegerValue,
+            "element_id": grid.Id.Value,
             "name": get_element_name(grid),
             "grid_type": "linear",  # Default, will be updated based on curve type
         }
@@ -935,9 +935,9 @@ def _find_grid_intersections(grids, target_level=None):
                             )
                         
                         intersections.append({
-                            "grid1_id": str(grid1.Id.IntegerValue),
+                            "grid1_id": str(grid1.Id.Value),
                             "grid1_name": get_element_name(grid1),
-                            "grid2_id": str(grid2.Id.IntegerValue),
+                            "grid2_id": str(grid2.Id.Value),
                             "grid2_name": get_element_name(grid2),
                             "intersection_point": {
                                 "x": intersection_point.X * 304.8,  # Convert to mm

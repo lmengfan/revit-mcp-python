@@ -176,7 +176,7 @@ def register_column_management_routes(api):
                     elem_id = DB.ElementId(int(element_id))
                     existing_column = doc.GetElement(elem_id)
                     if not existing_column or not isinstance(existing_column, DB.FamilyInstance) or \
-                       existing_column.Category.Id.IntegerValue != int(DB.BuiltInCategory.OST_StructuralColumns):
+                       existing_column.Category.Id.Value != int(DB.BuiltInCategory.OST_StructuralColumns):
                         return routes.make_response(
                             data={"error": "Element with ID {} is not a structural column".format(element_id)},
                             status=404,
@@ -224,7 +224,7 @@ def register_column_management_routes(api):
                 return routes.make_response(
                     data={
                         "message": "Successfully {} column '{}'".format(operation, column_name),
-                        "column_id": str(new_column.Id.IntegerValue),
+                        "column_id": str(new_column.Id.Value),
                         "column_name": column_name,
                         "family_name": family_name,
                         "type_name": type_name or "default",
@@ -295,7 +295,7 @@ def register_column_management_routes(api):
                 elem_id = DB.ElementId(int(element_id))
                 column = doc.GetElement(elem_id)
                 if not column or not isinstance(column, DB.FamilyInstance) or \
-                   column.Category.Id.IntegerValue != int(DB.BuiltInCategory.OST_StructuralColumns):
+                   column.Category.Id.Value != int(DB.BuiltInCategory.OST_StructuralColumns):
                     return routes.make_response(
                         data={"error": "Element with ID {} is not a structural column".format(element_id)},
                         status=404,
@@ -372,11 +372,11 @@ def register_column_management_routes(api):
                     
                     # Check if element is a structural column
                     if not (isinstance(element, DB.FamilyInstance) and 
-                           element.Category and element.Category.Id.IntegerValue == int(DB.BuiltInCategory.OST_StructuralColumns)):
+                           element.Category and element.Category.Id.Value == int(DB.BuiltInCategory.OST_StructuralColumns)):
                         continue
                     
                     column_info = {
-                        "id": str(elem_id.IntegerValue),
+                        "id": str(elem_id.Value),
                         "name": get_element_name(element)
                     }
                     
@@ -386,7 +386,7 @@ def register_column_management_routes(api):
                         if symbol:
                             column_info["family_name"] = get_element_name(symbol.Family)
                             column_info["type_name"] = get_element_name(symbol)
-                            column_info["type_id"] = str(symbol.Id.IntegerValue)
+                            column_info["type_id"] = str(symbol.Id.Value)
                             
                             # Get detailed type properties
                             type_properties = _extract_type_properties(symbol)
@@ -457,7 +457,7 @@ def register_column_management_routes(api):
                             base_level = doc.GetElement(element.LevelId)
                             if base_level:
                                 column_info["base_level"] = get_element_name(base_level)
-                                column_info["base_level_id"] = str(element.LevelId.IntegerValue)
+                                column_info["base_level_id"] = str(element.LevelId.Value)
                                 column_info["base_level_elevation"] = round(base_level.Elevation * 304.8, 2)
                             else:
                                 column_info["base_level"] = "Unknown"
@@ -472,11 +472,11 @@ def register_column_management_routes(api):
                         top_level_param = element.LookupParameter("Top Level")
                         if top_level_param and top_level_param.HasValue:
                             top_level_id = top_level_param.AsElementId()
-                            if top_level_id and top_level_id.IntegerValue != -1:
+                            if top_level_id and top_level_id.Value != -1:
                                 top_level = doc.GetElement(top_level_id)
                                 if top_level:
                                     column_info["top_level"] = get_element_name(top_level)
-                                    column_info["top_level_id"] = str(top_level_id.IntegerValue)
+                                    column_info["top_level_id"] = str(top_level_id.Value)
                                     column_info["top_level_elevation"] = round(top_level.Elevation * 304.8, 2)
                                 else:
                                     column_info["top_level"] = "Unknown"
@@ -615,9 +615,9 @@ def register_column_management_routes(api):
                                         value = round(param.AsDouble(), 3)
                                 elif param.StorageType == DB.StorageType.ElementId:
                                     elem_id_val = param.AsElementId()
-                                    if elem_id_val and elem_id_val.IntegerValue != -1:
+                                    if elem_id_val and elem_id_val.Value != -1:
                                         ref_elem = doc.GetElement(elem_id_val)
-                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.IntegerValue)
+                                        value = get_element_name(ref_elem) if ref_elem else str(elem_id_val.Value)
                                     else:
                                         value = "None"
                                 else:
@@ -769,7 +769,7 @@ def _edit_existing_column(doc, column, column_symbol, location, base_level, top_
             t.Start()
             
             # Update column type if different
-            if column.Symbol.Id.IntegerValue != column_symbol.Id.IntegerValue:
+            if column.Symbol.Id.Value != column_symbol.Id.Value:
                 column.Symbol = column_symbol
             
             # Update location if specified
@@ -785,7 +785,7 @@ def _edit_existing_column(doc, column, column_symbol, location, base_level, top_
                     location_obj.Point = new_point
             
             # Update base level if different
-            if column.LevelId.IntegerValue != base_level.Id.IntegerValue:
+            if column.LevelId.Value != base_level.Id.Value:
                 level_param = column.LookupParameter("Base Level")
                 if level_param and not level_param.IsReadOnly:
                     level_param.Set(base_level.Id)
@@ -903,7 +903,7 @@ def _extract_column_config(column, doc):
     """Extract configuration from an existing column"""
     try:
         config = {
-            "element_id": column.Id.IntegerValue,
+            "element_id": column.Id.Value,
             "name": get_element_name(column),
         }
         
@@ -936,7 +936,7 @@ def _extract_column_config(column, doc):
         top_level_param = column.LookupParameter("Top Level")
         if top_level_param and top_level_param.HasValue:
             top_level_id = top_level_param.AsElementId()
-            if top_level_id and top_level_id.IntegerValue != -1:
+            if top_level_id and top_level_id.Value != -1:
                 top_level = doc.GetElement(top_level_id)
                 if top_level:
                     config["top_level"] = get_element_name(top_level)
@@ -1042,7 +1042,7 @@ def _extract_type_properties(symbol):
                 if material:
                     materials["structural_material"] = {
                         "name": get_element_name(material),
-                        "id": str(symbol.StructuralMaterialId.IntegerValue)
+                        "id": str(symbol.StructuralMaterialId.Value)
                     }
                     
                     # Get material properties
@@ -1060,12 +1060,12 @@ def _extract_type_properties(symbol):
                 if param and param.HasValue:
                     if param.StorageType == DB.StorageType.ElementId:
                         elem_id = param.AsElementId()
-                        if elem_id and elem_id.IntegerValue != -1:
+                        if elem_id and elem_id.Value != -1:
                             material = symbol.Document.GetElement(elem_id)
                             if material:
                                 materials[param_name.lower().replace(":", "").replace(" ", "_")] = {
                                     "name": get_element_name(material),
-                                    "id": str(elem_id.IntegerValue)
+                                    "id": str(elem_id.Value)
                                 }
                     elif param.StorageType == DB.StorageType.String:
                         materials[param_name.lower().replace(":", "").replace(" ", "_")] = param.AsString()
@@ -1099,9 +1099,9 @@ def _extract_type_properties(symbol):
                         structural[param_name.lower().replace("'", "").replace(" ", "_")] = param.AsInteger()
                     elif param.StorageType == DB.StorageType.ElementId:
                         elem_id = param.AsElementId()
-                        if elem_id and elem_id.IntegerValue != -1:
+                        if elem_id and elem_id.Value != -1:
                             elem = symbol.Document.GetElement(elem_id)
-                            structural[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.IntegerValue)
+                            structural[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.Value)
             except:
                 continue
         
@@ -1187,9 +1187,9 @@ def _extract_type_properties(symbol):
                             additional[param_name.lower().replace(" ", "_")] = param.AsInteger()
                         elif param.StorageType == DB.StorageType.ElementId:
                             elem_id = param.AsElementId()
-                            if elem_id and elem_id.IntegerValue != -1:
+                            if elem_id and elem_id.Value != -1:
                                 elem = symbol.Document.GetElement(elem_id)
-                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.IntegerValue)
+                                additional[param_name.lower().replace(" ", "_")] = get_element_name(elem) if elem else str(elem_id.Value)
                 except:
                     continue
         except:

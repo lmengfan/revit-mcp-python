@@ -247,3 +247,106 @@ def find_family_symbol_safely(doc, target_family_name, target_type_name=None):
     except Exception as e:
         logger.error("Error finding family symbol: %s", str(e))
         return None
+
+
+def find_element_by_source_id(doc, category, source_id):
+    """
+    Find a Revit element by searching for a matching Source_Id parameter value.
+    
+    Args:
+        doc: Revit Document object
+        category: BuiltInCategory enum value (e.g., DB.BuiltInCategory.OST_Walls)
+        source_id: String ID to match against the Source_Id parameter
+        
+    Returns:
+        ElementId: The element ID of the first matching element, or None if not found
+        
+    Example:
+        # Find a wall with specific Source_Id
+        wall_id = find_element_by_source_id(doc, DB.BuiltInCategory.OST_Walls, "WALL_001")
+        if wall_id:
+            wall_element = doc.GetElement(wall_id)
+    """
+    try:
+        # Create collector for the specified category
+        collector = DB.FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType()
+        
+        # Iterate through elements in the category
+        for element in collector:
+            try:
+                # Try to get the Source_Id parameter
+                source_id_param = element.LookupParameter("Source_Id")
+                
+                if source_id_param is not None and source_id_param.HasValue:
+                    # Get parameter value as string
+                    param_value = source_id_param.AsString()
+                    
+                    # Compare with target source_id (case-sensitive)
+                    if param_value == source_id:
+                        logger.info("Found element with Source_Id '%s': ElementId %s", source_id, element.Id)
+                        return element.Id
+                        
+            except Exception as elem_error:
+                # Log error for individual element but continue searching
+                logger.debug("Error checking Source_Id for element %s: %s", element.Id, str(elem_error))
+                continue
+        
+        # No matching element found
+        logger.info("No element found with Source_Id: %s in category %s", source_id, category)
+        return None
+        
+    except Exception as e:
+        logger.error("Error searching for element with Source_Id '%s': %s", source_id, str(e))
+        return None
+
+
+def find_elements_by_source_id(doc, category, source_id):
+    """
+    Find all Revit elements by searching for matching Source_Id parameter values.
+    
+    Args:
+        doc: Revit Document object
+        category: BuiltInCategory enum value (e.g., DB.BuiltInCategory.OST_Walls)
+        source_id: String ID to match against the Source_Id parameter
+        
+    Returns:
+        List[ElementId]: List of element IDs for all matching elements, empty list if none found
+        
+    Example:
+        # Find all walls with specific Source_Id
+        wall_ids = find_elements_by_source_id(doc, DB.BuiltInCategory.OST_Walls, "WALL_001")
+        for wall_id in wall_ids:
+            wall_element = doc.GetElement(wall_id)
+    """
+    try:
+        matching_elements = []
+        
+        # Create collector for the specified category
+        collector = DB.FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType()
+        
+        # Iterate through elements in the category
+        for element in collector:
+            try:
+                # Try to get the Source_Id parameter
+                source_id_param = element.LookupParameter("Source_Id")
+                
+                if source_id_param is not None and source_id_param.HasValue:
+                    # Get parameter value as string
+                    param_value = source_id_param.AsString()
+                    
+                    # Compare with target source_id (case-sensitive)
+                    if param_value == source_id:
+                        matching_elements.append(element.Id)
+                        
+            except Exception as elem_error:
+                # Log error for individual element but continue searching
+                logger.debug("Error checking Source_Id for element %s: %s", element.Id, str(elem_error))
+                continue
+        
+        logger.info("Found %d elements with Source_Id '%s' in category %s", 
+                   len(matching_elements), source_id, category)
+        return matching_elements
+        
+    except Exception as e:
+        logger.error("Error searching for elements with Source_Id '%s': %s", source_id, str(e))
+        return []
