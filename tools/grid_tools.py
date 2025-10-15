@@ -93,7 +93,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
             }
 
             if ctx:
-                ctx.info("Creating/editing {} grid{}".format(
+                await ctx.info("Creating/editing {} grid{}".format(
                     grid_type, " '{}'".format(name) if name else ""
                 ))
 
@@ -103,7 +103,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create/edit grid: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -236,7 +236,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
             data = {"element_id": element_id}
 
             if ctx:
-                ctx.info("Querying grid with ID: {}".format(element_id))
+                await ctx.info("Querying grid with ID: {}".format(element_id))
 
             response = await revit_post("/query_grid/", data, ctx)
             return format_response(response)
@@ -244,7 +244,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to query grid: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -301,11 +301,11 @@ def register_grid_tools(mcp, revit_get, revit_post):
 
             if ctx:
                 if grid_ids:
-                    ctx.info("Finding intersections for {} specific grids".format(len(grid_ids)))
+                    await ctx.info("Finding intersections for {} specific grids".format(len(grid_ids)))
                 else:
-                    ctx.info("Finding intersections for all grids in model")
+                    await ctx.info("Finding intersections for all grids in model")
                 if level_name:
-                    ctx.info("Projecting intersections to level: {}".format(level_name))
+                    await ctx.info("Projecting intersections to level: {}".format(level_name))
 
             response = await revit_post("/find_grid_intersections/", data, ctx)
             return format_response(response)
@@ -313,7 +313,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to find grid intersections: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -374,13 +374,13 @@ def register_grid_tools(mcp, revit_get, revit_post):
 
             if ctx:
                 total_grids = len(linear_grids) + (len(radial_grids) if radial_grids else 0)
-                ctx.info("Creating grid system with {} grids".format(total_grids))
+                await ctx.info("Creating grid system with {} grids".format(total_grids))
 
             # Create linear grids
             for i, grid_def in enumerate(linear_grids):
                 try:
                     if ctx:
-                        ctx.info("Creating linear grid {}/{}: {}".format(
+                        await ctx.info("Creating linear grid {}/{}: {}".format(
                             i + 1, len(linear_grids), grid_def.get("name", "Unnamed")
                         ))
 
@@ -410,7 +410,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
                 for i, grid_def in enumerate(radial_grids):
                     try:
                         if ctx:
-                            ctx.info("Creating radial grid {}/{}: {}".format(
+                            await ctx.info("Creating radial grid {}/{}: {}".format(
                                 i + 1, len(radial_grids), grid_def.get("name", "Unnamed")
                             ))
 
@@ -460,7 +460,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create grid system: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -506,7 +506,7 @@ def register_grid_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Getting detailed information about selected grids...")
+                await ctx.info("Getting detailed information about selected grids...")
 
             response = await revit_get("/grid_details/", ctx)
             return format_response(response)
@@ -514,5 +514,5 @@ def register_grid_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to get grid details: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg 

@@ -103,7 +103,7 @@ def register_column_tools(mcp, revit_get, revit_post):
             }
 
             if ctx:
-                ctx.info("Creating/editing {} column{}".format(
+                await ctx.info("Creating/editing {} column{}".format(
                     structural_type.lower(), " '{}'".format(type_name) if type_name else ""
                 ))
 
@@ -113,7 +113,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create/edit column: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -237,7 +237,7 @@ def register_column_tools(mcp, revit_get, revit_post):
             failed_columns = []
 
             if ctx:
-                ctx.info("Creating columns at {} grid intersections".format(len(intersections)))
+                await ctx.info("Creating columns at {} grid intersections".format(len(intersections)))
 
             for i, intersection in enumerate(intersections):
                 try:
@@ -250,7 +250,7 @@ def register_column_tools(mcp, revit_get, revit_post):
                     intersection_point = intersection.get("intersection_point", {})
                     
                     if ctx:
-                        ctx.info("Creating column {}/{} at grid intersection {}-{}".format(
+                        await ctx.info("Creating column {}/{} at grid intersection {}-{}".format(
                             i + 1, len(intersections), grid1_name, grid2_name
                         ))
 
@@ -305,7 +305,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create columns at grid intersections: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -346,7 +346,7 @@ def register_column_tools(mcp, revit_get, revit_post):
             data = {"element_id": element_id}
 
             if ctx:
-                ctx.info("Querying column with ID: {}".format(element_id))
+                await ctx.info("Querying column with ID: {}".format(element_id))
 
             response = await revit_post("/query_column/", data, ctx)
             return format_response(response)
@@ -354,7 +354,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to query column: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -399,7 +399,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Getting detailed information about selected columns...")
+                await ctx.info("Getting detailed information about selected columns...")
 
             response = await revit_get("/column_details/", ctx)
             return format_response(response)
@@ -407,7 +407,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to get column details: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -462,7 +462,7 @@ def register_column_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating column layout for grid system...")
+                await ctx.info("Creating column layout for grid system...")
 
             # Get intersections from grid layout
             intersections = grid_layout.get("intersections", [])
@@ -480,12 +480,12 @@ def register_column_tools(mcp, revit_get, revit_post):
                     if intersection_name not in skip_intersections:
                         filtered_intersections.append(intersection)
                     elif ctx:
-                        ctx.info("Skipping intersection: {}".format(intersection_name))
+                        await ctx.info("Skipping intersection: {}".format(intersection_name))
                 
                 intersections = filtered_intersections
 
             if ctx:
-                ctx.info("Creating {} columns (skipped {})".format(
+                await ctx.info("Creating {} columns (skipped {})".format(
                     len(intersections), 
                     len(skip_intersections) if skip_intersections else 0
                 ))
@@ -510,5 +510,5 @@ def register_column_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create column layout: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg 

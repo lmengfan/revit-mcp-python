@@ -104,7 +104,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating/editing structural beam...")
+                await ctx.info("Creating/editing structural beam...")
 
             # Prepare request data
             request_data = {
@@ -130,7 +130,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create/edit beam: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
 
@@ -188,7 +188,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Placing beam between two points...")
+                await ctx.info("Placing beam between two points...")
 
             # Prepare request data
             request_data = {
@@ -211,7 +211,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to place beam between points: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
 
@@ -258,7 +258,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Querying beam with ID: {}".format(element_id))
+                await ctx.info("Querying beam with ID: {}".format(element_id))
 
             response = await revit_get("/query_beam/?element_id={}".format(element_id), ctx)
             return format_response(response)
@@ -266,7 +266,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to query beam: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     
@@ -332,7 +332,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Getting detailed information about selected beams...")
+                await ctx.info("Getting detailed information about selected beams...")
 
             response = await revit_get("/get_beam_details/", ctx)
             return format_response(response)
@@ -340,7 +340,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to get beam details: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
 
@@ -427,7 +427,7 @@ def register_beam_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating beam layout with {} beams...".format(len(beam_configs)))
+                await ctx.info("Creating beam layout with {} beams...".format(len(beam_configs)))
 
             # Prepare request data
             request_data = {
@@ -445,5 +445,5 @@ def register_beam_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create beam layout: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg 

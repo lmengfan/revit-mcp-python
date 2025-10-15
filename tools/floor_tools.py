@@ -78,7 +78,7 @@ def register_floor_tools(mcp, revit_get, revit_post):
         """
         if ctx:
             operation = "Editing" if element_id else "Creating"
-            ctx.info("{} floor on level '{}'...".format(operation, level_name))
+            await ctx.info("{} floor on level '{}'...".format(operation, level_name))
 
         # Prepare the request data
         data = {
@@ -150,7 +150,7 @@ def register_floor_tools(mcp, revit_get, revit_post):
             )
         """
         if ctx:
-            ctx.info("Creating {}mm x {}mm rectangular floor on level '{}'...".format(
+            await ctx.info("Creating {}mm x {}mm rectangular floor on level '{}'...".format(
                 width, length, level_name
             ))
 
@@ -197,6 +197,6 @@ def register_floor_tools(mcp, revit_get, revit_post):
         All measurements are converted to metric units (mm for lengths, sq m for areas).
         """
         if ctx:
-            ctx.info("Getting detailed information about selected floor elements...")
+            await ctx.info("Getting detailed information about selected floor elements...")
         response = await revit_get("/floor_details/", ctx)
         return format_response(response)

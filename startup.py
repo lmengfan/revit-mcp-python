@@ -68,6 +68,14 @@ def register_routes():
         from revit_mcp.api_mapping import register_api_mapping_routes
 
         register_api_mapping_routes(api)
+        
+        from revit_mcp.atf_management import register_atf_management_routes
+
+        register_atf_management_routes(api)
+        
+        from revit_mcp.geometry_management import register_geometry_management_routes
+
+        register_geometry_management_routes(api)
 
         logger.info("All MCP routes registered successfully")
 

@@ -112,7 +112,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating/editing wall...")
+                await ctx.info("Creating/editing wall...")
 
             # Prepare request data
             request_data = {
@@ -138,7 +138,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create/edit wall: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -200,7 +200,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating rectangular wall enclosure...")
+                await ctx.info("Creating rectangular wall enclosure...")
 
             # Prepare request data
             request_data = {
@@ -223,7 +223,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create rectangular wall: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -270,7 +270,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Querying wall with ID: {}".format(element_id))
+                await ctx.info("Querying wall with ID: {}".format(element_id))
 
             response = await revit_get("/query_wall/?element_id={}".format(element_id), ctx)
             return format_response(response)
@@ -278,7 +278,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to query wall: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -343,7 +343,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Getting detailed information about selected walls...")
+                await ctx.info("Getting detailed information about selected walls...")
 
             response = await revit_get("/get_wall_details/", ctx)
             return format_response(response)
@@ -351,7 +351,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to get wall details: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg
 
     @mcp.tool()
@@ -450,7 +450,7 @@ def register_wall_tools(mcp, revit_get, revit_post):
         """
         try:
             if ctx:
-                ctx.info("Creating wall layout with {} walls...".format(len(wall_configs)))
+                await ctx.info("Creating wall layout with {} walls...".format(len(wall_configs)))
 
             # Prepare request data
             request_data = {
@@ -471,5 +471,5 @@ def register_wall_tools(mcp, revit_get, revit_post):
         except Exception as e:
             error_msg = "Failed to create wall layout: {}".format(str(e))
             if ctx:
-                ctx.error(error_msg)
+                await ctx.error(error_msg)
             return error_msg 

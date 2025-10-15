@@ -32,7 +32,7 @@ def register_model_tools(mcp, revit_get):
         and understanding their relationships within the model.
         """
         if ctx:
-            ctx.info("Getting information about selected elements...")
+            await ctx.info("Getting information about selected elements...")
         response = await revit_get("/selected_elements/", ctx)
         return format_response(response)
 
@@ -58,6 +58,6 @@ def register_model_tools(mcp, revit_get):
         All measurements are converted to metric units (mm for lengths, sq m for areas).
         """
         if ctx:
-            ctx.info("Getting detailed information about selected floor elements...")
+            await ctx.info("Getting detailed information about selected floor elements...")
         response = await revit_get("/floor_details/", ctx)
         return format_response(response)

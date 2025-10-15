@@ -49,7 +49,7 @@ def register_mapping_tools(mcp, revit_get):
             into HTTP API calls, enabling code generation and automation scripts.
         """
         if ctx:
-            ctx.info("Retrieving MCP to HTTP API mapping information...")
+            await ctx.info("Retrieving MCP to HTTP API mapping information...")
 
         response = await revit_get("/mcp_to_http_mapping/", ctx)
         return format_response(response) 

@@ -20,6 +20,9 @@ def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func
     from .pipe_tools import register_pipe_tools
     
     from .mapping_tools import register_mapping_tools
+    from .atf_tools import register_atf_tools
+    from .geometry_tools import register_geometry_tools
+    from .python_tools import register_python_tools
 
     # Register tools from each module
     register_status_tools(mcp_server, revit_get_func)
@@ -39,3 +42,8 @@ def register_tools(mcp_server, revit_get_func, revit_post_func, revit_image_func
     register_pipe_tools(mcp_server, revit_get_func, revit_post_func)
     
     register_mapping_tools(mcp_server, revit_get_func)
+    register_atf_tools(mcp_server, revit_get_func, revit_post_func)
+    register_geometry_tools(mcp_server, revit_get_func, revit_post_func)
+    
+    # Register Python interpreter tools (standalone, doesn't need revit_get/post)
+    register_python_tools(mcp_server)
